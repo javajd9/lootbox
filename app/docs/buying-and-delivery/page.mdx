@@ -1,0 +1,28 @@
+export const metadata = { title: "Buying & delivery" };
+
+<p className="eyebrow mb-4">Docs · Winning</p>
+
+# Buying & delivery
+
+Once the winner has claimed, the prize is bought and shipped automatically. Nobody at LOOTBOX picks products, places orders by hand, or handles the winner's address.
+
+## Buying
+
+- **Products are locked before a drop opens.** Each item has a fixed retailer product ID (an Amazon ASIN) and a price cap, both shown on the drop. The order is checked against this list automatically.
+- **The order is placed through Zinc**, a service that places retailer orders by API. It orders the exact locked products, shipped to the winner's address, and refuses to go above the cap.
+- **It's paid from the treasury.** USDC moves on Solana from the treasury to the purchasing account. That transaction is the drop's **Paid** proof.
+
+<Rule rule="priceChange" />
+
+## Delivery
+
+- Tracking numbers come back with the order and are registered with **AfterShip**, which follows the carrier until delivery.
+- Each status change, from shipped to in transit to delivered, becomes a proof. See [the 8 proofs](/docs/proofs).
+- **Tracking numbers are never published.** Carrier pages can show a delivery city or ZIP code, so proofs only include a keyed fingerprint of the number.
+- A bundle can arrive in several packages. Each one is tracked.
+
+<Rule rule="shipping" />
+
+## When it's done
+
+When everything has arrived, the winner signs one last message with the winning wallet confirming they received it. "Delivered" is the carrier's word. The winner's signature is theirs.

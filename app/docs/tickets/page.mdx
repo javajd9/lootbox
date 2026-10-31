@@ -1,0 +1,48 @@
+import { RULES } from "@/lib/config/rules";
+
+export const metadata = { title: "Tickets" };
+
+export const per = RULES.tokensPerTicket.toLocaleString("en-US");
+
+<p className="eyebrow mb-4">Docs · Basics</p>
+
+# Tickets
+
+Holding $LOOT puts tickets in the box. More tickets, better odds. There's nothing to buy or register.
+
+## The rule
+
+> Every **{per} $LOOT** of your average balance during a drop is **one ticket**. Fractions round down.
+
+Your average is taken across several **snapshots**: readings of every $LOOT balance on Solana, taken at random times nobody knows in advance.
+
+<Rule rule="snapshots" />
+
+Your chance of winning a drop is your tickets divided by all tickets in the box.
+
+## Why an average
+
+If tickets were based on one moment, someone could buy a huge bag right before the draw and sell right after. Averaging across unannounced snapshots means a last-minute buy only counts in the snapshots that come after it.
+
+## Example
+
+Six snapshots are taken during a drop.
+
+| Wallet | Holds | Average | Tickets |
+|---|---|---|---|
+| A | 50,000 $LOOT the whole time | 50,000 | **5** |
+| B | 0, then buys 100,000 before the last snapshot | 16,666 | **1** |
+| C | 9,000 the whole time | 9,000 | **0**, under one ticket |
+| D | 250,000, sells half after snapshot 3 | 187,500 | **18** |
+
+## Good to know
+
+- **One wallet is never worse than several.** Odds are proportional, so splitting doesn't help, and rounding down in each wallet can only lose you fractions.
+- **Every drop counts separately.** Each drop has its own snapshots. If you keep holding, you're in every drop.
+- **Selling lowers your balance in every snapshot after the sale.** Tickets from earlier snapshots still count toward your average.
+- **Some wallets can never win.** The pump.fun bonding curve, the liquidity pool, the team and dev wallets, and the treasury are excluded. Their addresses are listed on [Addresses](/docs/addresses).
+- **Check your tickets** any time from the "Check your tickets" link on the [live page](/).
+
+## In the code
+
+Ticket math is built and tested: averaging, exclusions, rounding, and the last-minute-buyer case. See `lib/draws/snapshot.ts` and `lib/draws/tickets.ts`.

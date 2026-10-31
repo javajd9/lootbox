@@ -1,0 +1,43 @@
+{
+  "name": "lootbox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "gate:zinc": "tsx scripts/gate-zinc.ts",
+    "gate:zkfetch": "tsx scripts/gate-zkfetch.ts"
+  },
+  "dependencies": {
+    "@mdx-js/loader": "^3.1.0",
+    "@mdx-js/react": "^3.1.0",
+    "@next/mdx": "^14.2.35",
+    "@noble/hashes": "^1.5.0",
+    "bs58": "^6.0.0",
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remark-gfm": "^4.0.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@reclaimprotocol/js-sdk": "latest",
+    "@reclaimprotocol/zk-fetch": "latest",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^20.16.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.5",
+    "postcss": "^8.4.49",
+    "sharp": "^0.33.5",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,36 @@
+export const metadata = { title: "Addresses" };
+
+<p className="eyebrow mb-4">Docs · Reference · Verify</p>
+
+# Addresses
+
+Every on-chain address LOOTBOX uses. All of them are published here before launch, and pinned on LOOTBOX's official X account so you can cross-check them in two places.
+
+## LOOTBOX
+
+| What | Address | What to check |
+|---|---|---|
+| **$LOOT token** | Published at launch | The mint on pump.fun matches this exactly |
+| **Treasury** | Published before launch | Receives creator fees and pays for prizes |
+| **Purchasing account** | Published before launch | Receives USDC from the treasury for each order (the Paid step) |
+| **Proof publisher** | Published before launch | Posts snapshot, ticket-list and proof fingerprints |
+
+## Excluded from every draw
+
+| Wallet | Address |
+|---|---|
+| pump.fun bonding curve | Published at launch |
+| Liquidity pool | Published at launch |
+| Team and dev wallets | Published before launch |
+| Treasury and purchasing account | As above |
+
+## Outside services
+
+| Service | Used for |
+|---|---|
+| ORAO VRF on Solana | Draw randomness |
+| Reclaim Protocol | zkTLS proofs of order and delivery data |
+
+<Callout title="Scam check">
+  If an address anywhere else doesn&apos;t match this page and the pinned post, don&apos;t trust it.
+</Callout>

@@ -1,0 +1,32 @@
+export const metadata = { title: "What you're trusting" };
+
+<p className="eyebrow mb-4">Docs · Proof</p>
+
+# What you're trusting
+
+No system is trustless all the way down. Here's exactly what LOOTBOX's proofs cover, and what they don't.
+
+## You don't have to trust LOOTBOX for
+
+- **The pool.** Every fee in and every payment out is on Solana.
+- **The draw.** The ticket list is locked on-chain before the randomness exists, and anyone can re-run the math.
+- **The purchase.** The order proof comes from the order service's own server, not from us, and can't be edited.
+- **The proof history.** Every proof's fingerprint is on Solana. Nothing can be quietly changed afterward.
+
+## You do trust
+
+| Who | For what | Why it's reasonable |
+|---|---|---|
+| **Solana** | Recording transactions and fingerprints | The chain everything else runs on |
+| **ORAO VRF** | Producing randomness nobody can predict or choose | Its randomness comes with a proof that's checked on-chain |
+| **Zinc** | Reporting the Amazon order truthfully | An independent order service. It has no stake in who wins |
+| **AfterShip and the carrier** | Reporting delivery truthfully | Independent tracking. Their data is proven with zkTLS |
+| **Reclaim Protocol's witnesses** | Not colluding to fake a zkTLS proof | Independent operators. A fake would need them to collude |
+
+## What the proofs can't show
+
+- **That "Delivered" means the winner has it.** Carriers sometimes get it wrong. That's why the last step is the winner's own signature.
+- **That a winner isn't connected to the team.** Team and treasury wallets are published and excluded. We can't prove nobody on the team owns another wallet. But the draw is random, so any wallet only wins as often as its tickets allow, and it can't be steered.
+- **What happens after delivery.** A winner can sell, keep or gift their prize.
+
+If you find a gap we haven't listed, tell us. It belongs on this page.

@@ -1,0 +1,44 @@
+import { normalizeAddress } from "@/lib/proofs/commitment";
+
+export const metadata = { title: "Privacy" };
+
+export const normalized = normalizeAddress({ name: "Jordan Rivera", line1: "742 Evergreen Terrace", city: "Springfield", state: "OR", zip: "97477-1234" });
+
+<p className="eyebrow mb-4">Docs · Winning</p>
+
+# Privacy
+
+LOOTBOX proves that a prize reached its winner without ever publishing who or where the winner is.
+
+## What happens to each piece of data
+
+| Data | Who handles it | In LOOTBOX's database | Published |
+|---|---|---|---|
+| Winning wallet | Everyone, since it's on Solana | Yes | Yes |
+| Name, address, phone | The checkout (Shopify), the order service (Zinc), the retailer and the carrier: only what's needed to ship | **No** | **Never.** Only a salted fingerprint |
+| Email | The checkout, for order updates | **No** | **Never** |
+| Tracking numbers | The order and tracking services | Only a fingerprint | **Never.** Only a keyed fingerprint |
+| Products, prices, order number | Everyone | Yes | Yes. This is what proves the purchase |
+
+The website's code reads the shipping details from the checkout once, passes them to the order, and never writes them to LOOTBOX's database.
+
+## The address fingerprint
+
+When a winner claims, LOOTBOX publishes a fingerprint of their address that nobody can reverse. Only the winner can check it.
+
+1. The address is tidied into one line: uppercase, punctuation removed, a 5-digit ZIP. For example:
+
+<CodeBlock>{normalized}</CodeBlock>
+
+2. A random 32-byte secret is generated and given **only to the winner**.
+3. The published fingerprint is `SHA-256("LOOTBOX-ADDR-v1|" + address + "|" + secret)`.
+
+Without the secret, guessing addresses doesn't help, because each guess would also need the 32-byte secret. With it, the winner can type their address into the proof page and confirm it matches. That check runs only in their browser and nothing is sent anywhere.
+
+## Leak guard
+
+Before any proof is published, an automatic check searches everything about to be revealed for the winner's name, street, city, ZIP, phone and email, ignoring case, spacing and punctuation. If anything matches, publishing stops. A blocked proof is better than a leaked address.
+
+## In the code
+
+`lib/proofs/commitment.ts` (fingerprint) and `lib/proofs/pii-guard.ts` (leak guard) are built and tested, including leaks written in different formats.

@@ -1,0 +1,56 @@
+import { receiptMessage } from "@/lib/proofs/receipt";
+
+export const metadata = { title: "Verify it yourself" };
+
+export const receipt = receiptMessage({ dropId: "DROP-001", amazonOrderId: "112-0000000-0000000", commitment: "d4c442c1…cbd326", receivedOn: "2026-11-27" });
+
+<p className="eyebrow mb-4">Docs · Proof · Verify</p>
+
+# Verify it yourself
+
+The proof page runs these checks for you in your browser. This page explains what each one does, so you can run them by hand with your own tools.
+
+## The quick way
+
+Open a drop's proof page and press **Verify everything**. Each check runs on your device against the raw proof data, not against a "verified: true" flag from our server. Try **Try tampering** on the [demo proof page](/proof/DROP-000) to watch a check fail when one number changes.
+
+## By hand, step by step
+
+### 1. The chain and its fingerprints
+
+1. Download the drop's proof packages from its proof page.
+2. For each package, compute SHA-256 over its canonical JSON (keys sorted, no whitespace).
+3. Confirm each package's `prevHash` equals the previous package's fingerprint, and the first one's is `null`.
+4. Confirm each fingerprint matches the one posted on Solana for that package. The posting address is on [Addresses](/docs/addresses).
+
+### 2. Funded and Paid
+
+Look up the treasury on Solscan. Fee inflows should match the pool, and the **Paid** package's transaction should be a transfer from the treasury to the purchasing account for at least the order total.
+
+### 3. Drawn
+
+Follow [Reproduce a draw](/docs/reproduce).
+
+### 4. Ordered, Shipped, Delivered (zkTLS)
+
+Each of these packages carries a Reclaim proof. Verify it with Reclaim's open-source SDK (`verifyProof` in `@reclaimprotocol/js-sdk`), then check:
+
+- the proof's host is the order service or tracking service, not some other server;
+- the revealed fields match what the package says, such as products, quantities, order number or delivery status;
+- the order's items match the drop's locked product list.
+
+### 5. Received
+
+The receipt is a plain message signed with the winning wallet's key (ed25519, signature in base58). Any Solana signature tool can check it. The message looks like this:
+
+<CodeBlock label="Receipt message format">{receipt}</CodeBlock>
+
+The `commitment` in the receipt is the address fingerprint from the **Claimed** step. By signing it, the winner confirms that this is the address the prize was sent to.
+
+### 6. Your address (winners only)
+
+If you won, enter your address and your secret code on the proof page. The fingerprint is recomputed in your browser and compared with the published one. See [Privacy](/docs/privacy) for the exact format.
+
+## What runs today
+
+The proof page's chain, receipt-signature and address checks are built and run on the demo drop. Reading fingerprints from Solana and verifying zkTLS proofs come with those systems. The banner above shows where each stands.

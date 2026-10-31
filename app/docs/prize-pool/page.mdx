@@ -1,0 +1,35 @@
+import { RULES } from "@/lib/config/rules";
+
+export const metadata = { title: "The prize pool" };
+
+<p className="eyebrow mb-4">Docs · Basics</p>
+
+# The prize pool
+
+Prizes are paid for by $LOOT trading, not by ticket sales or deposits.
+
+## Where the money comes from
+
+pump.fun pays a share of every $LOOT trade's fees to the token's creator. LOOTBOX sends those **creator fees to a public treasury wallet**. Anyone can see every fee that arrives on Solscan. The address is on [Addresses](/docs/addresses).
+
+The prize pool on the live page is the fees that have reached the treasury since the current drop opened, valued in US dollars when they arrived.
+
+## Goals
+
+Every drop has a goal: the cost of its bundle, including tax and shipping, at the prices locked when the drop opens. The first drop, the GTA VI Bundle, has a goal of **${RULES.firstDropGoalUsd.toLocaleString("en-US")}**.
+
+The second the pool reaches its goal, [the draw](/docs/the-draw) starts. There's no wait and no manual step.
+
+<Rule rule="leftoverFees" />
+
+## How the money is spent
+
+- Fees arrive in SOL. When a drop is won, the treasury converts what's needed to USDC on-chain, so every swap is a public transaction.
+- The USDC goes to the purchasing account that pays for the order. That transfer is the **Paid** proof for the drop.
+- The treasury's key never lives on LOOTBOX's web servers. A compromised website can't move treasury funds.
+
+## What you can check
+
+- Every fee coming into the treasury, on Solscan.
+- Every payment out, and that it matches a drop's **Paid** proof.
+- That the pool on the live page matches the treasury's history.

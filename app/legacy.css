@@ -1,0 +1,33 @@
+/* Styles for the docs, proof and claim pages: mono labels for real data, and code blocks.
+   The homepage loads none of this. */
+
+.card {
+  @apply rounded-sm border border-line bg-panel p-6;
+}
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-sm px-5 py-3 text-sm font-bold uppercase tracking-[0.12em] transition disabled:opacity-50;
+}
+.btn-loot {
+  @apply btn bg-loot text-ink hover:bg-cream;
+}
+.btn-ghost {
+  @apply btn border border-line text-cream hover:border-loot hover:text-loot;
+}
+.input {
+  @apply w-full rounded-sm border border-line bg-ink px-3 py-2 text-sm text-cream outline-none placeholder:text-mute focus:border-loot;
+}
+.hud {
+  @apply font-mono text-[10px] uppercase tracking-hud text-mute;
+}
+.eyebrow {
+  @apply font-mono text-xs uppercase tracking-hud text-loot;
+}
+.display {
+  @apply font-black uppercase leading-[0.9] tracking-tight;
+}
+.vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+.vignette-light {
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(14, 14, 16, 0.18) 100%);
+}

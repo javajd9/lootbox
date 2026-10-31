@@ -1,0 +1,51 @@
+import { RULES } from "@/lib/config/rules";
+
+export const metadata = { title: "FAQ" };
+
+<p className="eyebrow mb-4">Docs · Reference</p>
+
+# FAQ
+
+### Do I need to sign up or enter anything?
+
+No. Holding $LOOT is entering. Your tickets come from your balance automatically. See [Tickets](/docs/tickets).
+
+### How many tickets do I have?
+
+Every {RULES.tokensPerTicket.toLocaleString("en-US")} $LOOT of your average balance is one ticket. Use **Check your tickets** on the [live page](/).
+
+### Can I buy right before the draw to win?
+
+It barely helps. Tickets come from your average across snapshots taken at random times, so a late buy only counts in the snapshots after it.
+
+### Is the draw rigged?
+
+It can't be steered. The ticket list is locked on Solana before the randomness exists, the randomness comes from ORAO VRF, and anyone can re-run the draw. See [How the winner is picked](/docs/the-draw).
+
+### Can the team win?
+
+Team, dev and treasury wallets are published and excluded. What we can and can't prove about this is on [What you're trusting](/docs/trust).
+
+### When is the draw?
+
+The second the prize pool reaches its goal, live on the homepage.
+
+### I won. What now?
+
+Go to [Claim](/claim) within {RULES.claimDays} days, sign a free message with the winning wallet, and enter your shipping details at a $0 checkout. See [Claiming a prize](/docs/claiming).
+
+### Will you ask for my seed phrase or a payment?
+
+Never. Claiming is a free message signature and a $0 checkout. If something asks you to approve a transaction, it isn't LOOTBOX.
+
+### Who sees my address if I win?
+
+Only the services that ship the prize. It's never stored in LOOTBOX's database and never published. See [Privacy](/docs/privacy).
+
+### How do I know the prize was really bought?
+
+The order is proven with a zkTLS proof of the order service's own response, and the payment is a public Solana transaction. See [The 8 proofs](/docs/proofs).
+
+### Where does the prize money come from?
+
+$LOOT creator fees from pump.fun, collected in a public treasury. See [The prize pool](/docs/prize-pool).

@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  /* Motion tokens */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --t-press: 140ms;
+  --t-hover: 180ms;
+  --t-ui: 240ms;
+  --stagger-item: 70ms;
+  /* The page's one pair of outer margins */
+  --margin: clamp(16px, 5vw, 72px);
+}
+
+body {
+  @apply bg-ink font-sans text-cream antialiased;
+}
+
+::selection {
+  @apply bg-loot text-ink;
+}
+
+/* Docs, proof and claim pages add their own styles from app/legacy.css. */
+
+@layer components {
+  /* ---------- homepage: the raffle-ticket stationery ---------- */
+
+  /* The page's one frame: every section and the header share these margins. */
+  .frame { width: min(1296px, 100% - 2 * var(--margin)); margin-inline: auto; }
+
+  /* Type steps: display, head, title (and statements at the same size), lead, body (16px), small */
+  .t-display { font-size: clamp(64px, 9vw, 136px); line-height: 0.9; font-weight: 900; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+  .t-head { font-size: clamp(40px, 4.4vw, 68px); line-height: 0.95; font-weight: 900; letter-spacing: -0.03em; }
+  .t-title { font-size: clamp(32px, 3vw, 40px); line-height: 1; font-weight: 900; letter-spacing: -0.02em; }
+  .t-statement { font-size: clamp(24px, 3vw, 36px); line-height: 1.2; }
+  .t-lead { font-size: clamp(20px, 1.6vw, 24px); line-height: 1.3; }
+  .t-small { font-size: 14px; line-height: 1.45; }
+
+  /* One button shape for the whole page: square, flat, sentence case */
+  .button {
+    @apply inline-flex items-center justify-center bg-loot px-6 py-3.5 text-base font-bold text-ink;
+    transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease;
+  }
+  .button:active { transform: scale(0.97); }
+  .button-ink { @apply bg-ink text-cream; }
+  .link {
+    @apply font-bold underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 0.08em;
+    transition: text-decoration-color var(--t-hover) ease;
+  }
+  .button:focus-visible, .link:focus-visible { outline: 3px solid #E3A82E; outline-offset: 3px; }
+  @media (hover: hover) and (pointer: fine) {
+    .button:hover { @apply bg-cream; }
+    .button-ink:hover { @apply bg-panel; }
+    .link:hover { text-decoration-color: currentColor; }
+  }
+
+  /* The ticket, cut like real card stock: concave corners, two half-moon notches where the stub
+     tears off, and a line of punched holes between them. Each corner/notch layer bites one shape
+     out and they're intersected. The holes are a full grid of holes, added to (so filled back in
+     by) "everything but the tear line" and "the ends of the tear line", leaving only the holes
+     along the line itself. */
+  .ticket {
+    --stub: 320px;
+    --tear: calc(100% - var(--stub));
+    --notch: 16px;
+    --corner: 22px;
+    --cuts:
+      radial-gradient(circle var(--notch) at var(--tear) 0, transparent 98%, #000),
+      radial-gradient(circle var(--notch) at var(--tear) 100%, transparent 98%, #000),
+      radial-gradient(circle var(--corner) at 0 0, transparent 98%, #000),
+      radial-gradient(circle var(--corner) at 100% 0, transparent 98%, #000),
+      radial-gradient(circle var(--corner) at 0 100%, transparent 98%, #000),
+      radial-gradient(circle var(--corner) at 100% 100%, transparent 98%, #000);
+    --holes:
+      linear-gradient(#000 26px, transparent 0 calc(100% - 26px), #000 0),
+      linear-gradient(90deg, #000 calc(var(--tear) - 4px), transparent 0 calc(var(--tear) + 4px), #000 0),
+      radial-gradient(circle, transparent 2.5px, #000 3.1px) calc(var(--tear) + 4px) 50% / 8px 14px;
+    -webkit-mask: var(--cuts), var(--holes);
+    -webkit-mask-composite: source-in, source-in, source-in, source-in, source-in, source-in, source-over, source-over, source-over;
+    mask: var(--cuts), var(--holes);
+    mask-composite: intersect, intersect, intersect, intersect, intersect, intersect, add, add, add;
+  }
+  @media (max-width: 1023px) {
+    .ticket {
+      --stub: 400px;
+      --cuts:
+        radial-gradient(circle var(--notch) at 0 var(--tear), transparent 98%, #000),
+        radial-gradient(circle var(--notch) at 100% var(--tear), transparent 98%, #000),
+        radial-gradient(circle var(--corner) at 0 0, transparent 98%, #000),
+        radial-gradient(circle var(--corner) at 100% 0, transparent 98%, #000),
+        radial-gradient(circle var(--corner) at 0 100%, transparent 98%, #000),
+        radial-gradient(circle var(--corner) at 100% 100%, transparent 98%, #000);
+      --holes:
+        linear-gradient(90deg, #000 26px, transparent 0 calc(100% - 26px), #000 0),
+        linear-gradient(#000 calc(var(--tear) - 4px), transparent 0 calc(var(--tear) + 4px), #000 0),
+        radial-gradient(circle, transparent 2.5px, #000 3.1px) 50% calc(var(--tear) + 4px) / 14px 8px;
+    }
+  }
+
+  /* The ticket lifts off the page: a tight contact shadow and a soft long one, following its cut
+     edges (and showing through the holes). */
+  .ticket-float {
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45)) drop-shadow(0 30px 40px rgba(0, 0, 0, 0.6));
+  }
+
+  /* Card stock: fine grain, a touch of light in the middle, and edges a shade warmer, like paper
+     that's been handled. */
+  .ticket-paper {
+    background-color: #f2efe8;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 70% 60% at 45% 40%, rgba(255, 255, 255, 0.45), transparent 75%);
+    box-shadow: inset 0 0 70px rgba(150, 118, 60, 0.14);
+  }
+
+  /* Scalloped paper edges (menu sheet top and bottom, back of the card top) */
+  .scallop-y {
+    -webkit-mask:
+      radial-gradient(circle 14px at 50% 0, transparent 97%, #000) top / 40px 51% repeat-x,
+      radial-gradient(circle 14px at 50% 100%, transparent 97%, #000) bottom / 40px 51% repeat-x;
+    mask:
+      radial-gradient(circle 14px at 50% 0, transparent 97%, #000) top / 40px 51% repeat-x,
+      radial-gradient(circle 14px at 50% 100%, transparent 97%, #000) bottom / 40px 51% repeat-x;
+  }
+  .scallop-top {
+    -webkit-mask: radial-gradient(circle 50px at 50% 0, transparent 97%, #000) top / 100px 100% repeat-x;
+    mask: radial-gradient(circle 50px at 50% 0, transparent 97%, #000) top / 100px 100% repeat-x;
+  }
+  @media (max-width: 767px) {
+    .scallop-top {
+      -webkit-mask: radial-gradient(circle 32px at 50% 0, transparent 97%, #000) top / 64px 100% repeat-x;
+      mask: radial-gradient(circle 32px at 50% 0, transparent 97%, #000) top / 64px 100% repeat-x;
+    }
+  }
+
+  /* Dot leaders on the itinerary slip */
+  .leader { flex: 1; min-width: 24px; margin: 0 10px; border-bottom: 4px dotted rgba(14, 14, 16, 0.35); transform: translateY(-5px); }
+}
+
+/* ---------- motion layer ---------- */
+
+/* Entrances: hidden only when JS runs and the visitor allows motion */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-expo);
+    transition-delay: calc(var(--i, 0) * var(--stagger-item));
+  }
+  .js [data-reveal].is-in { opacity: 1; transform: none; }
+}
+
+/* Receding hero: as the first screen leaves, the ticket lifts away a little faster than the page
+   Static where unsupported. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero { view-timeline-name: --hero; }
+    .hero-ticket { animation: hero-lift linear both; animation-timeline: --hero; animation-range: exit 0% exit 80%; }
+  }
+}
+@keyframes hero-lift { to { transform: translateY(-6%) scale(0.97); opacity: 0; } }
