@@ -15,7 +15,12 @@
     "devnet:token": "tsx scripts/devnet-token.ts",
     "devnet:snapshot": "tsx scripts/devnet-snapshot.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
-    "db:check": "tsx scripts/db-check.ts"
+    "db:check": "tsx scripts/db-check.ts",
+    "devnet:setup": "tsx scripts/devnet-setup.ts",
+    "devnet:tick": "tsx scripts/devnet-tick.ts",
+    "schedule:tick": "tsx scripts/schedule-tick.ts",
+    "devnet:fees": "tsx scripts/devnet-fees.ts",
+    "vercel:env": "tsx scripts/vercel-env.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",

@@ -193,7 +193,9 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
   const { phase, drop, fundedUsd, tickets, watching, trades, draw, lastWinner } = state;
   const pct = Math.min(1, fundedUsd / drop.goalUsd);
   const toGo = Math.max(0, drop.goalUsd - fundedUsd);
-  const preLaunch = !demo && fundedUsd === 0 && !lastWinner;
+  const preLaunch = !demo && (state.upcoming ?? (fundedUsd === 0 && !lastWinner));
+  // Live, the draw starts when the engine's pause ends; the demo counts down from 5.
+  const untilDraw = state.drawAt ? Math.max(1, Math.ceil((Date.parse(state.drawAt) - Date.now()) / 1000)) : 5;
   const final = phase === "filling" && pct >= 0.9;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -318,7 +320,7 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                     <>
                       <p className="t-display">Funded.</p>
                       <p className="t-title mt-4">
-                        Drawing in <Countdown from={5} speed={speed} />
+                        Drawing in <Countdown key={state.drawAt} from={untilDraw} speed={speed} />
                       </p>
                       <p className="t-lead mt-4">Asking Solana for a random number. {tickets.toLocaleString("en-US")} tickets are locked in.</p>
                     </>
@@ -395,7 +397,8 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                   <p className="t-title">{stubWord}</p>
                   {!preLaunch && (
                     <p className="t-small mt-2">
-                      {tickets.toLocaleString("en-US")} tickets in the box · {watching.toLocaleString("en-US")} watching
+                      {tickets.toLocaleString("en-US")} tickets in the box
+                      {watching > 0 && <> · {watching.toLocaleString("en-US")} watching</>}
                     </p>
                   )}
                 </div>

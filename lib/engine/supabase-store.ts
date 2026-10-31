@@ -1,15 +1,12 @@
 // The drop engine's state, kept in Supabase. Server only: it uses the service role key.
-import { createClient } from "@supabase/supabase-js";
+import { serverDb } from "@/lib/db";
 import type { EngineStore } from "./run";
 import type { EngineState } from "./types";
 
 const LEASE_SECONDS = 55; // a tick finishes well inside a minute; a crashed one frees the lock by the next
 
 export function supabaseStore(initial: EngineState): EngineStore {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Supabase is not configured (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)");
-  const db = createClient(url, key, { auth: { persistSession: false } });
+  const db = serverDb();
   const holder = crypto.randomUUID();
 
   return {

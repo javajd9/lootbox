@@ -22,13 +22,16 @@ export function parseFingerprint(text: string): { dropId: string; kind: string; 
   return { dropId, kind, values };
 }
 
-export async function postMemo(conn: Connection, signer: Keypair, text: string): Promise<string> {
-  const ix = new TransactionInstruction({
-    keys: [{ pubkey: signer.publicKey, isSigner: true, isWritable: false }],
+export function memoInstruction(signer: PublicKey, text: string): TransactionInstruction {
+  return new TransactionInstruction({
+    keys: [{ pubkey: signer, isSigner: true, isWritable: false }],
     programId: MEMO_PROGRAM_ID,
     data: Buffer.from(text, "utf8"),
   });
-  return sendAndConfirm(conn, new Transaction().add(ix), [signer]);
+}
+
+export async function postMemo(conn: Connection, signer: Keypair, text: string): Promise<string> {
+  return sendAndConfirm(conn, new Transaction().add(memoInstruction(signer.publicKey, text)), [signer]);
 }
 
 // Reads a fingerprint back from the chain: what it says, who signed it, and when.

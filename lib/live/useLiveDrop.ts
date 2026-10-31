@@ -1,10 +1,11 @@
 "use client";
 
-// Live state of the current drop, as every viewer sees it.
-// Today this is driven by a local simulator (demo mode). Later, the same shape comes from
-// Supabase Realtime: fee inflows from Helius, and the draw result from the VRF transaction.
-import { useCallback, useEffect, useState } from "react";
+// Live state of the current drop, as every viewer sees it: from the drop engine's public feed
+// (/api/live, checked every few seconds), or from a local simulator in demo mode (/?demo).
+import { useCallback, useEffect, useRef, useState } from "react";
+import { applyView } from "./fromView";
 import type { PastDrop } from "./types";
+import type { LiveView } from "./view";
 
 export type Phase = "filling" | "funded" | "drawing" | "winner";
 
@@ -45,11 +46,15 @@ export interface LiveDrop {
   draw?: DrawResult;
   lastWinner?: LastWinner;
   fundedAt?: string;
+  drawAt?: string; // live: when the draw starts, after the pause that follows the pool filling
+  upcoming?: boolean; // the drop hasn't opened yet (before launch)
+  revealedId?: string; // live: the drop whose draw has already played
   history: PastDrop[]; // newest first
 }
 
 // How long the winner stays on stage before the next drop opens.
 export const WINNER_HOLD_MS = 10_000;
+const POLL_MS = 5_000;
 
 const DEMO_WALLETS = [
   "7xKpQ2vRdLm3nBf8hTzW1cYe5sJa9uGq4oXiN6kE9mQ2",
@@ -116,14 +121,56 @@ function openNextDrop(s: LiveDrop, next: StageDrop): LiveDrop {
   };
 }
 
-const DEMO_START = { phase: "filling" as const, fundedUsd: 1240.18, tickets: 61_402, watching: 1_204, trades: [] };
+const DEMO_START = { phase: "filling" as const, upcoming: false, fundedUsd: 1240.18, tickets: 61_402, watching: 1_204, trades: [] };
 
 export function useLiveDrop(initial: LiveDrop, upNext: StageDrop[], demoHistory: PastDrop[] = []) {
   const [state, setState] = useState(initial);
   const [demo, setDemo] = useState(false);
+  const [live, setLive] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const latest = useRef<LiveView | null>(null);
 
   const nextDrop = upNext.find((d) => d.number === state.drop.number + 1);
+
+  // Live mode: the real drop engine. Shown to everyone once it runs on mainnet; before that,
+  // /?live shows the devnet test drops.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("demo")) return;
+    let timer: ReturnType<typeof setTimeout>;
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/live", { cache: "no-store" });
+        const view = res.ok ? ((await res.json()) as LiveView) : null;
+        if (view && (view.cluster === "mainnet-beta" || params.has("live"))) {
+          latest.current = view;
+          setLive(true);
+          setState((s) => applyView(s, view, () => ++tradeId));
+        }
+      } catch {
+        // Offline for a moment: keep showing the last known state.
+      }
+      if (!stopped) timer = setTimeout(poll, POLL_MS);
+    };
+    poll();
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  // Live: after the winner has been on stage, the engine's current drop takes over.
+  useEffect(() => {
+    if (!live || state.phase !== "winner") return;
+    const t = setTimeout(() => {
+      setState((s) => {
+        const next = { ...s, phase: "filling" as const, draw: undefined, trades: [] };
+        return latest.current ? applyView(next, latest.current, () => ++tradeId) : next;
+      });
+    }, WINNER_HOLD_MS);
+    return () => clearTimeout(t);
+  }, [live, state.phase]);
 
   // Demo mode: /?demo (optionally &speed=4)
   useEffect(() => {
@@ -182,5 +229,5 @@ export function useLiveDrop(initial: LiveDrop, upNext: StageDrop[], demoHistory:
     setSpeed,
   };
 
-  return { state, demo, speed, nextDrop, finishDraw, controls };
+  return { state, demo, live, speed, nextDrop, finishDraw, controls };
 }

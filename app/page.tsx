@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <>
       <LiveProvider
-        initial={{ phase: "filling", drop: toStage(current), fundedUsd: current.fundedUsd, tickets: 0, watching: 0, trades: [], history: [] }}
+        initial={{ phase: "filling", upcoming: true, drop: toStage(current), fundedUsd: current.fundedUsd, tickets: 0, watching: 0, trades: [], history: [] }}
         upNext={rest.map(toStage)}
         demoHistory={getDemoHistory()}
       >
