@@ -3,6 +3,7 @@
 // from the chain alone. Every step prints a Solscan link so anyone can see it happened.
 //
 //   npm run devnet:draw
+import "dotenv/config";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { fingerprintMemo, parseFingerprint, postMemo, readMemo } from "@/lib/chain/memo";
 import { connection, explorerAccount, explorerTx } from "@/lib/chain/solana";

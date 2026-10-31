@@ -1,6 +1,6 @@
 // The Solana connection and the ops wallet: the published wallet that signs every proof
 // fingerprint and every randomness request. Devnet (Solana's free test network) until launch.
-import { Connection, Keypair, clusterApiUrl } from "@solana/web3.js";
+import { Connection, Keypair, clusterApiUrl, type Transaction } from "@solana/web3.js";
 import bs58 from "bs58";
 
 export type Cluster = "devnet" | "mainnet-beta";
@@ -16,6 +16,24 @@ export function heliusUrl(cluster: Cluster = CLUSTER): string | null {
 export function connection(cluster: Cluster = CLUSTER): Connection {
   const url = (cluster === CLUSTER && process.env.SOLANA_RPC_URL) || heliusUrl(cluster) || clusterApiUrl(cluster);
   return new Connection(url, "confirmed");
+}
+
+// Sends a transaction and checks its status every second until it's confirmed. Plain requests
+// only: web3.js's own confirm keeps a live connection open, which stops scripts from exiting and
+// doesn't suit serverless functions.
+export async function sendAndConfirm(conn: Connection, tx: Transaction, signers: Keypair[]): Promise<string> {
+  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = signers[0].publicKey;
+  tx.sign(...signers);
+  const sig = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 });
+  for (;;) {
+    const status = (await conn.getSignatureStatuses([sig])).value[0];
+    if (status?.err) throw new Error(`transaction ${sig} failed: ${JSON.stringify(status.err)}`);
+    if (status?.confirmationStatus === "confirmed" || status?.confirmationStatus === "finalized") return sig;
+    if ((await conn.getBlockHeight("confirmed")) > lastValidBlockHeight) throw new Error(`transaction ${sig} expired before it was confirmed`);
+    await new Promise((r) => setTimeout(r, 1000));
+  }
 }
 
 export function opsWallet(secret = process.env.OPS_WALLET_SECRET): Keypair {

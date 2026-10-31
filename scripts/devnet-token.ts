@@ -3,6 +3,7 @@
 // in .keys/devnet-token.json.
 //
 //   npm run devnet:token
+import "dotenv/config";
 import fs from "node:fs";
 import { createMint, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { Keypair } from "@solana/web3.js";

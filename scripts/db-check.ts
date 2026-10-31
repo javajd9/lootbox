@@ -33,6 +33,10 @@ check("the lock is released afterwards", (await b.withLock(async () => true)) ==
 const visitor = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 const peek = await visitor.from("engine_state").select("state");
 check("visitors can't read the engine's private state", !peek.error && peek.data.length === 0);
+for (const table of ["claims", "orders", "audit_events"]) {
+  const r = await visitor.from(table).select("id");
+  check(`visitors can't read ${table}`, !r.error && r.data.length === 0);
+}
 const grab = await visitor.rpc("engine_acquire", { p_holder: "visitor", p_seconds: 60 });
 check("visitors can't take the engine lock", Boolean(grab.error));
 const drops = await visitor.from("drops").select("id");

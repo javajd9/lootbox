@@ -1,6 +1,7 @@
 // Proof fingerprints on Solana. Each one is a Memo: a short line of text, signed by the ops wallet
 // and timestamped by the chain, that can never be edited or removed afterwards.
-import { PublicKey, Transaction, TransactionInstruction, sendAndConfirmTransaction, type Connection, type Keypair } from "@solana/web3.js";
+import { PublicKey, Transaction, TransactionInstruction, type Connection, type Keypair } from "@solana/web3.js";
+import { sendAndConfirm } from "./solana";
 
 export const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 const MAX_BYTES = 500;
@@ -27,7 +28,7 @@ export async function postMemo(conn: Connection, signer: Keypair, text: string):
     programId: MEMO_PROGRAM_ID,
     data: Buffer.from(text, "utf8"),
   });
-  return sendAndConfirmTransaction(conn, new Transaction().add(ix), [signer], { commitment: "confirmed" });
+  return sendAndConfirm(conn, new Transaction().add(ix), [signer]);
 }
 
 // Reads a fingerprint back from the chain: what it says, who signed it, and when.
