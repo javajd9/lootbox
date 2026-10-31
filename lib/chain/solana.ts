@@ -6,8 +6,15 @@ import bs58 from "bs58";
 export type Cluster = "devnet" | "mainnet-beta";
 export const CLUSTER: Cluster = process.env.SOLANA_CLUSTER === "mainnet-beta" ? "mainnet-beta" : "devnet";
 
+// Helius when its key is set (faster, and needed for reading every holder); Solana's public
+// endpoint otherwise.
+export function heliusUrl(cluster: Cluster = CLUSTER): string | null {
+  const key = process.env.HELIUS_API_KEY;
+  return key ? `https://${cluster === "devnet" ? "devnet" : "mainnet"}.helius-rpc.com/?api-key=${key}` : null;
+}
+
 export function connection(cluster: Cluster = CLUSTER): Connection {
-  const url = cluster === CLUSTER && process.env.SOLANA_RPC_URL ? process.env.SOLANA_RPC_URL : clusterApiUrl(cluster);
+  const url = (cluster === CLUSTER && process.env.SOLANA_RPC_URL) || heliusUrl(cluster) || clusterApiUrl(cluster);
   return new Connection(url, "confirmed");
 }
 

@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit",
     "gate:zinc": "tsx scripts/gate-zinc.ts",
     "gate:zkfetch": "tsx scripts/gate-zkfetch.ts",
-    "devnet:draw": "tsx scripts/devnet-draw.ts"
+    "devnet:draw": "tsx scripts/devnet-draw.ts",
+    "devnet:token": "tsx scripts/devnet-token.ts",
+    "devnet:snapshot": "tsx scripts/devnet-snapshot.ts",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:check": "tsx scripts/db-check.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
@@ -20,9 +24,12 @@
     "@next/mdx": "^14.2.35",
     "@noble/hashes": "^1.5.0",
     "@orao-network/solana-vrf": "^0.8.0",
+    "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
+    "@supabase/supabase-js": "^2.118.0",
     "bs58": "^6.0.0",
     "next": "^14.2.35",
+    "pg": "^8.23.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "remark-gfm": "^4.0.0",
@@ -33,6 +40,7 @@
     "@reclaimprotocol/zk-fetch": "latest",
     "@types/mdx": "^2.0.13",
     "@types/node": "^20.16.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",

@@ -3,10 +3,6 @@
 // from the chain alone. Every step prints a Solscan link so anyone can see it happened.
 //
 //   npm run devnet:draw
-//
-// The devnet ops wallet is kept in .keys/devnet-ops.json (never committed; it holds only free
-// test SOL).
-import fs from "node:fs";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { fingerprintMemo, parseFingerprint, postMemo, readMemo } from "@/lib/chain/memo";
 import { connection, explorerAccount, explorerTx } from "@/lib/chain/solana";
@@ -14,18 +10,10 @@ import { drawSeed, randomnessAccount, readRandomness, requestRandomness } from "
 import { buildSnapshot, combineWeights, hashWeights } from "@/lib/draws/snapshot";
 import { toTickets } from "@/lib/draws/tickets";
 import { pickWinner } from "@/lib/draws/weighted-pick";
+import { devnetWallet } from "./devnet-wallet";
 
-const KEY_FILE = ".keys/devnet-ops.json";
 const conn = connection("devnet");
 const tx = (sig: string) => explorerTx(sig, "devnet");
-
-function loadOrCreateWallet(): Keypair {
-  if (fs.existsSync(KEY_FILE)) return Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync(KEY_FILE, "utf8"))));
-  const kp = Keypair.generate();
-  fs.mkdirSync(".keys", { recursive: true });
-  fs.writeFileSync(KEY_FILE, JSON.stringify([...kp.secretKey]));
-  return kp;
-}
 
 async function ensureFunded(ops: Keypair) {
   const balance = await conn.getBalance(ops.publicKey);
@@ -50,7 +38,7 @@ function sampleTickets(dropId: string) {
 }
 
 async function main() {
-  const ops = loadOrCreateWallet();
+  const ops = devnetWallet();
   const balance = await ensureFunded(ops);
   console.log(`Ops wallet ${ops.publicKey.toBase58()} (${(balance / LAMPORTS_PER_SOL).toFixed(3)} test SOL)\n  ${explorerAccount(ops.publicKey.toBase58(), "devnet")}\n`);
 
