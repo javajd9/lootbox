@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { LogoMark, Wordmark } from "@/components/brand/Logo";
 import "./globals.css";
 import "./legacy.css";
 
-// The brand's one typeface. (Monospace, for real code only, loads in the docs and proof pages: lib/fonts.ts.)
-const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "700", "800", "900"], variable: "--font-sans" });
+// The brand's one typeface: Inter (latin, variable weight), kept in the repo so builds never depend on
+// Google Fonts. (Monospace, for real code only, loads in the docs and proof pages: lib/fonts.ts.)
+const sans = localFont({ src: "./fonts/inter-latin.woff2", weight: "100 900", display: "swap", variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: { default: "LOOTBOX — Don't trust. Check.", template: "%s — LOOTBOX" },
