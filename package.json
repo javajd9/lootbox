@@ -20,7 +20,8 @@
     "devnet:tick": "tsx scripts/devnet-tick.ts",
     "schedule:tick": "tsx scripts/schedule-tick.ts",
     "devnet:fees": "tsx scripts/devnet-fees.ts",
-    "vercel:env": "tsx scripts/vercel-env.ts"
+    "vercel:env": "tsx scripts/vercel-env.ts",
+    "devnet:holder": "tsx scripts/devnet-holder.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",

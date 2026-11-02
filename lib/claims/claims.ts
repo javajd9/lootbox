@@ -2,6 +2,7 @@
 // Signing costs nothing and can't move funds. Each nonce works once and expires.
 import nacl from "tweetnacl";
 import bs58 from "bs58";
+import type { DropRecord } from "@/lib/engine/types";
 
 export const NONCE_TTL_MS = 10 * 60 * 1000;
 
@@ -54,3 +55,28 @@ export function verifyClaimSignature(claim: PendingClaim | undefined, signatureB
     return { ok: false, reason: "bad_signature" };
   }
 }
+
+// Can this wallet claim this drop right now? Checked when the nonce is issued and again when the
+// signature comes back, against the engine's own record of the drop.
+export type ClaimableResult =
+  | { ok: true }
+  | { ok: false; reason: "unknown_drop" | "not_claiming" | "not_winner" | "deadline_passed" | "already_claimed" | "on_hold" };
+
+export function claimable(drop: DropRecord | undefined, wallet: string, now = Date.now()): ClaimableResult {
+  if (!drop) return { ok: false, reason: "unknown_drop" };
+  if (drop.claimedAt || ["fulfilling", "delivered", "complete"].includes(drop.stage)) return { ok: false, reason: "already_claimed" };
+  if (drop.stage !== "claiming" || !drop.winner) return { ok: false, reason: "not_claiming" };
+  if (drop.hold) return { ok: false, reason: "on_hold" };
+  if (drop.winner !== wallet) return { ok: false, reason: "not_winner" };
+  if (!drop.claimDeadline || now >= Date.parse(drop.claimDeadline)) return { ok: false, reason: "deadline_passed" };
+  return { ok: true };
+}
+
+export const CLAIMABLE_MESSAGES: Record<Exclude<ClaimableResult, { ok: true }>["reason"], string> = {
+  unknown_drop: "Unknown drop.",
+  not_claiming: "This drop isn't waiting for a claim.",
+  not_winner: "This wallet didn't win this drop.",
+  deadline_passed: "The claim window for this drop has closed.",
+  already_claimed: "This prize has already been claimed.",
+  on_hold: "This drop is paused while we check something. Try again later.",
+};

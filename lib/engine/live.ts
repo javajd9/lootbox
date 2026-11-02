@@ -12,6 +12,8 @@ import { toTickets } from "@/lib/draws/tickets";
 import { pickWinner } from "@/lib/draws/weighted-pick";
 import { solPriceUsd } from "@/lib/treasury/price";
 import { findFunding, moveToPrize, treasuryCents } from "@/lib/treasury/treasury";
+import { claimStore } from "@/lib/claims/store";
+import { withClaims } from "./claims";
 import { dropConfig, initialState, withQueuedDrops } from "./drops";
 import type { EngineStore } from "./run";
 import { supabaseStore } from "./supabase-store";
@@ -154,8 +156,8 @@ export function liveEffects(): Effects {
   };
 }
 
-// The engine's store, with newly queued drops added and each drop's stage mirrored to the public
-// drops table whenever it changes.
+// The engine's store, with newly queued drops added, finished claims read in (see ./claims), and
+// each drop's stage mirrored to the public drops table whenever it changes.
 export function liveStore(): EngineStore {
   const store = withQueuedDrops(supabaseStore(initialState()));
   const db = serverDb();
@@ -163,7 +165,9 @@ export function liveStore(): EngineStore {
   return {
     ...store,
     async load() {
-      const state = await store.load();
+      const loaded = await store.load();
+      const waiting = loaded.drops.filter((d) => d.stage === "claiming" && !d.claimedAt).map((d) => d.id);
+      const state = withClaims(loaded, await claimStore.completed(waiting));
       stages = new Map(state.drops.map((d) => [d.id, d.stage]));
       return state;
     },
