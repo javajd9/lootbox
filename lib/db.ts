@@ -8,7 +8,11 @@ export function serverDb(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error("Supabase is not configured (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)");
-  return (client ??= createClient(url, key, { auth: { persistSession: false } }));
+  // no-store: Next.js 14 caches fetch results by default, and a cached read would hand the engine an old state.
+  return (client ??= createClient(url, key, {
+    auth: { persistSession: false },
+    global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) },
+  }));
 }
 
 // Throws on a failed query, so a half-saved step never looks like a finished one.

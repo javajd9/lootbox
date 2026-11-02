@@ -6,6 +6,7 @@ import { liveEffects, liveStore } from "@/lib/engine/live";
 import { tick } from "@/lib/engine/run";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store"; // every read (state, balances, prices, holders) must be fresh
 export const maxDuration = 60;
 
 function authorized(req: Request): boolean {

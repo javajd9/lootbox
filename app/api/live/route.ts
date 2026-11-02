@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { liveView } from "@/lib/engine/public";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store"; // the CDN caches the response for 5s; the reads behind it must be fresh
 
 export async function GET() {
   try {
