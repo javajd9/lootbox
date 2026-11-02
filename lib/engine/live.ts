@@ -11,7 +11,7 @@ import { buildSnapshot, combineWeights, hashSnapshot, hashWeights, type Snapshot
 import { toTickets } from "@/lib/draws/tickets";
 import { pickWinner } from "@/lib/draws/weighted-pick";
 import { solPriceUsd } from "@/lib/treasury/price";
-import { moveToPrize, treasuryCents } from "@/lib/treasury/treasury";
+import { findFunding, moveToPrize, treasuryCents } from "@/lib/treasury/treasury";
 import { dropConfig, initialState, withQueuedDrops } from "./drops";
 import type { EngineStore } from "./run";
 import { supabaseStore } from "./supabase-store";
@@ -77,8 +77,12 @@ export function liveEffects(): Effects {
     },
 
     async fund(d, cents) {
-      const tx = await moveToPrize(conn, ops, treasury, prize, d.id, cents, await solPrice());
-      check(await db.from("drops").update({ funded_at: new Date().toISOString(), funded_tx: tx }).eq("id", d.id), "save funding");
+      // A drop is paid once, even if the engine loaded an old state: check the saved record, then the chain.
+      const { data: row } = check(await db.from("drops").select("funded_tx").eq("id", d.id).maybeSingle(), "load funding");
+      const paid = row?.funded_tx ?? (await findFunding(conn, treasury.publicKey, d.id));
+      if (paid) console.warn(`${d.id} was already funded (${paid}); not paying again`);
+      const tx = paid ?? (await moveToPrize(conn, ops, treasury, prize, d.id, cents, await solPrice()));
+      if (!row?.funded_tx) check(await db.from("drops").update({ funded_at: new Date().toISOString(), funded_tx: tx }).eq("id", d.id), "save funding");
     },
 
     async lockTickets(d) {

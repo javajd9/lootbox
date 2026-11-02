@@ -2,7 +2,7 @@
 // moment a pool fills, the prize's worth moves to the prize wallet (on mainnet it will be swapped
 // to USDC on the way).
 import { LAMPORTS_PER_SOL, SystemProgram, Transaction, type Connection, type Keypair, type PublicKey } from "@solana/web3.js";
-import { fingerprintMemo, memoInstruction } from "@/lib/chain/memo";
+import { fingerprintMemo, memoInstruction, parseFingerprint } from "@/lib/chain/memo";
 import { sendAndConfirm } from "@/lib/chain/solana";
 
 const RESERVE_LAMPORTS = 890_880; // what an empty account must keep to stay open
@@ -13,6 +13,21 @@ export async function treasuryCents(conn: Connection, treasury: PublicKey, price
 }
 
 export const lamportsFor = (cents: number, priceUsd: number) => Math.ceil((cents / 100 / priceUsd) * LAMPORTS_PER_SOL);
+
+// Whether a transaction's memo field (as getSignaturesForAddress gives it: "[60] LOOTBOX|v1|…",
+// several joined by "; ") is this drop's "funded" fingerprint.
+export function isFundingMemo(memoField: string | null | undefined, dropId: string): boolean {
+  return (memoField ?? "").split("; ").some((m) => {
+    const f = parseFingerprint(m.replace(/^\[\d+\]\s*/, ""));
+    return f?.dropId === dropId && f.kind === "funded";
+  });
+}
+
+// The chain is the record of what was paid: the transaction that already funded this drop, if any.
+export async function findFunding(conn: Connection, treasury: PublicKey, dropId: string): Promise<string | null> {
+  const sigs = await conn.getSignaturesForAddress(treasury, { limit: 200 });
+  return sigs.find((s) => !s.err && isFundingMemo(s.memo, dropId))?.signature ?? null;
+}
 
 // The transfer and its fingerprint go in one transaction, so the proof can't be separated from the
 // payment. The ops wallet pays the fee.

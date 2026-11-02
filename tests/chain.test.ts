@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fingerprintMemo, parseFingerprint } from "../lib/chain/memo";
 import { drawSeed, randomnessAccount } from "../lib/chain/vrf";
+import { isFundingMemo } from "../lib/treasury/treasury";
 
 describe("proof fingerprints", () => {
   it("round-trips through the memo format", () => {
@@ -31,5 +32,19 @@ describe("draw seeds", () => {
     const first = randomnessAccount(drawSeed("DROP-001", "ab12", 1));
     expect(randomnessAccount(drawSeed("DROP-001", "ab12", 2))).not.toBe(first);
     expect(randomnessAccount(drawSeed("DROP-001", "cd34", 1))).not.toBe(first);
+  });
+});
+
+describe("never paying a drop twice", () => {
+  it("spots the drop's own funded fingerprint in a transaction's memo field", () => {
+    const funded = `[60] ${fingerprintMemo("DEV-002", "funded", "1000c", "106262338lamports", "94.1067usd")}`;
+    expect(isFundingMemo(funded, "DEV-002")).toBe(true);
+    expect(isFundingMemo(`[12] something else; ${funded}`, "DEV-002")).toBe(true);
+  });
+
+  it("ignores other drops, other steps, and transactions without a memo", () => {
+    expect(isFundingMemo(`[60] ${fingerprintMemo("DEV-001", "funded", "1000c")}`, "DEV-002")).toBe(false);
+    expect(isFundingMemo(`[80] ${fingerprintMemo("DEV-002", "tickets", "ab12")}`, "DEV-002")).toBe(false);
+    expect(isFundingMemo(null, "DEV-002")).toBe(false);
   });
 });
