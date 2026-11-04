@@ -59,5 +59,8 @@ export function applyView(s: LiveDrop, v: LiveView, nextTradeId: () => number): 
     trades: sameDrop ? [...s.trades, ...coins].slice(-8) : coins,
     seenFees: fresh.seenFees,
     lastWinner: w ? { dropId: w.id, number: w.number, title: w.title, wallet: w.wallet, ticket: w.ticket } : s.lastWinner,
+    // Every drawn drop, from the engine, so the ledger survives a reload. The drop on stage joins
+    // only once its draw has played, so the ledger never gives the winner away early.
+    history: v.history ? v.history.filter((h) => h.id !== s.drop.id || s.revealedId === h.id) : s.history,
   };
 }

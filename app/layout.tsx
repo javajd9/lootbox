@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 const NAV = [
   ["Live", "/"],
   ["Docs", "/docs"],
-  ["Proof", "/proof/DROP-000"],
+  ["Proof", "/proof"],
   ["Claim", "/claim"],
 ] as const;
 

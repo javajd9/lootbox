@@ -8,7 +8,7 @@ import Link from "next/link";
 import { CheckMark } from "@/components/brand/Logo";
 import { HudSection } from "@/components/brand/Hud";
 import { shortWallet, usd } from "@/lib/live/format";
-import { PROOF_STEPS, dropCode, fmtDay, isOnTheWay, nextStep, statusText, type PastDrop, type StepKey } from "@/lib/live/types";
+import { PROOF_STEPS, dropCode, fmtDay, isFinished, isOnTheWay, nextStep, statusText, type PastDrop, type StepKey } from "@/lib/live/types";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { useLive } from "./LiveProvider";
 
@@ -211,9 +211,13 @@ function Completed({ drops }: { drops: PastDrop[] }) {
           </span>
           <span className="hidden font-mono text-sm md:block">{shortWallet(d.wallet)}</span>
           <span className="hidden font-mono text-sm text-cream/70 md:block">#{d.ticket.toLocaleString("en-US")}</span>
-          <span className="hud flex items-center gap-1.5 text-loot">
-            <CheckMark className="h-3.5 w-3.5" /> Signed {d.done.received && fmtDay(d.done.received)}
-          </span>
+          {d.done.received ? (
+            <span className="hud flex items-center gap-1.5 text-loot">
+              <CheckMark className="h-3.5 w-3.5" /> Signed {fmtDay(d.done.received)}
+            </span>
+          ) : (
+            <span className="hud text-cream/60">Delivered{d.done.delivered && ` ${fmtDay(d.done.delivered)}`} · unsigned</span>
+          )}
           <Link href={proofHref(d)} className="hud col-span-3 text-loot hover:text-cream md:col-span-1 md:text-right">
             Proof →
           </Link>
@@ -228,7 +232,7 @@ export function ProofLedger() {
   const { drop, fundedUsd, history } = state;
   const pct = Math.floor((fundedUsd / drop.goalUsd) * 100);
   const onTheWay = history.filter(isOnTheWay);
-  const completed = history.filter((h) => h.done.received);
+  const completed = history.filter(isFinished);
   const delivered = history.filter((h) => h.done.delivered);
   const stats = [
     { label: "Prizes delivered", value: delivered.length },
@@ -279,10 +283,17 @@ export function ProofLedger() {
       </div>
 
       <h3 className="display mt-20 text-3xl sm:text-4xl">Completed</h3>
-      <p className="mt-2 text-sm text-cream/60">Delivered, and signed for by the winner&apos;s own wallet.</p>
+      <p className="mt-2 text-sm text-cream/60">
+        Delivered, and signed for by the winner&apos;s own wallet, or closed 14 days after delivery without a signature.
+      </p>
       <div className="mt-6">
         <Completed drops={completed} />
       </div>
+      <p className="mt-8">
+        <Link href="/proof" className="hud text-cream/70 underline decoration-loot underline-offset-4 hover:text-loot">
+          Every drop&apos;s proof page →
+        </Link>
+      </p>
     </HudSection>
   );
 }

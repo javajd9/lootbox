@@ -1,11 +1,12 @@
 // Shared by the server (mock data) and the client (live stage + proof ledger).
 
-// Every drop walks through these steps; each one is backed by a proof.
+// Every drop walks through these steps, in this order; each one is backed by a proof. Funded and
+// Paid happen together, the moment the pool fills (see /docs/proofs).
 export const PROOF_STEPS = [
   ["funded", "Funded"],
+  ["paid", "Paid"],
   ["drawn", "Drawn"],
   ["claimed", "Claimed"],
-  ["paid", "Paid"],
   ["ordered", "Ordered"],
   ["shipped", "Shipped"],
   ["delivered", "Delivered"],
@@ -28,6 +29,7 @@ export interface PastDrop {
   sample?: boolean;
   code?: string; // display code instead of the padded number (sample data)
   proofId?: string; // proof page to link, when it differs from id
+  complete?: boolean; // finished without the winner's signature (14 days after delivery)
 }
 
 // Winners have this long to claim before the prize is redrawn.
@@ -41,8 +43,11 @@ export function nextStep(d: PastDrop): StepKey | undefined {
   return PROOF_STEPS.find(([k]) => !d.done[k])?.[0];
 }
 
-// Drawn but not yet signed for by the winner.
-export const isOnTheWay = (d: PastDrop) => !!d.done.drawn && !d.done.received;
+// Signed for by the winner, or finished without it.
+export const isFinished = (d: PastDrop) => !!d.done.received || !!d.complete;
+
+// Drawn and not finished yet.
+export const isOnTheWay = (d: PastDrop) => !!d.done.drawn && !isFinished(d);
 
 export function dropCode(d: Pick<PastDrop, "number" | "code">) {
   return d.code ?? String(d.number).padStart(3, "0");
@@ -56,9 +61,7 @@ export function statusText(d: PastDrop, now = Date.now()): string {
       return `Claim open · ${left}d left`;
     }
     case "claimed":
-      return "Claimed · buying now";
-    case "paid":
-      return "Paid · placing order";
+      return "Claimed · ordering now";
     case "ordered":
       return "Ordered · packing";
     case "shipped":
