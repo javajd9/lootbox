@@ -4,12 +4,26 @@ import { WinnerAddressCheck } from "@/components/WinnerAddressCheck";
 import { HudSection } from "@/components/brand/Hud";
 import { DEMO_ADDRESS, DEMO_SALT, getDropProofs } from "@/lib/data/mock";
 import { mono } from "@/lib/fonts";
+import { liveDropProofs } from "@/lib/proofs/public";
 import "../../legacy.css";
 
-export default function ProofPage({ params }: { params: { dropId: string } }) {
-  const data = getDropProofs(params.dropId);
+// Live drops are read fresh from the database on every visit; the checks run in the browser.
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+export default async function ProofPage({ params }: { params: { dropId: string } }) {
+  // DROP-000 is the demo rehearsal; every other drop the engine has opened is read live.
+  const real =
+    params.dropId === "DROP-000" || !/^[A-Z0-9-]{1,32}$/.test(params.dropId)
+      ? null
+      : await liveDropProofs(params.dropId).catch((err) => {
+          console.error("proof page", err);
+          return null;
+        });
+  const data = real ?? getDropProofs(params.dropId);
   if (!data) notFound();
-  const { drop, packages, anchoredHashes } = data;
+  const { drop, packages } = data;
+  const live = real?.live;
 
   return (
     <HudSection index="04" label="The proof" className={mono.variable}>
@@ -23,6 +37,12 @@ export default function ProofPage({ params }: { params: { dropId: string } }) {
               DEMO until a live drop provides the real Solana transactions and Reclaim proofs.
             </p>
           )}
+          {live?.cluster === "devnet" && (
+            <p className="mt-6 max-w-3xl border-l-2 border-loot pl-4 text-sm text-cream/70">
+              Test drop on Solana&apos;s devnet. Its prize is Zinc&apos;s sandbox test product, so nothing real is bought or shipped,
+              but every check below runs against the real records.
+            </p>
+          )}
           {drop.winnerWallet && (
             <p className="hud mt-6 break-all">
               Winner · <span className="text-cream">{drop.winnerWallet}</span>
@@ -30,7 +50,7 @@ export default function ProofPage({ params }: { params: { dropId: string } }) {
           )}
         </header>
 
-        <ProofChecks drop={drop} packages={packages} anchoredHashes={anchoredHashes} />
+        <ProofChecks drop={drop} packages={packages} anchoredHashes={"anchoredHashes" in data ? data.anchoredHashes : []} live={live} />
 
         {drop.addressCommitment && (
           <WinnerAddressCheck

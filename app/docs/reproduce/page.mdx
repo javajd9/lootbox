@@ -26,7 +26,7 @@ Anyone can re-run a LOOTBOX draw from public data and check they get the same wi
 ## Steps
 
 1. **Check the snapshots.** Hash each snapshot file (SHA-256 over its canonical JSON, keys sorted) and confirm it matches the fingerprint posted on Solana at that time.
-2. **Rebuild the ticket list.** For each wallet, average its balance across the snapshots, then divide by the per-ticket amount and round down. Remove excluded wallets. Sort by wallet address.
+2. **Rebuild the ticket list.** For each wallet, average its balance across the snapshots, then divide by the per-ticket amount and round down. Remove excluded wallets, and any address off the ed25519 curve (owned by a program, so it can't sign). Sort by wallet address.
 3. **Check the lock.** Hash the ticket list and confirm it matches the fingerprint posted before the randomness request.
 4. **Pick.** Run the selection with the VRF's 64 bytes, as below.
 5. **Compare.** The ticket and wallet you get must match the published winner.

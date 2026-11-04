@@ -2,7 +2,7 @@
 // public record is saved exactly as it was hashed, so anyone can re-check it.
 import { Keypair, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
-import { readHolders } from "@/lib/chain/holders";
+import { canSign, readHolders } from "@/lib/chain/holders";
 import { fingerprintMemo, postMemo } from "@/lib/chain/memo";
 import { connection, opsWallet } from "@/lib/chain/solana";
 import { drawSeed, randomnessAccount, readRandomness, requestRandomness } from "@/lib/chain/vrf";
@@ -22,7 +22,7 @@ import type { EngineStore } from "./run";
 import { supabaseStore } from "./supabase-store";
 import type { Effects } from "./types";
 // Money in: creator fees and the mainnet USDC swap.
-import { readCreatorFees } from "@/lib/chain/pump";
+import { bondingCurveAddress, poolAddress, readCreatorFees } from "@/lib/chain/pump";
 import { CLUSTER } from "@/lib/chain/solana";
 import { collectCreatorFees } from "@/lib/treasury/fees";
 import { swapToPrize } from "@/lib/treasury/swap";
@@ -43,8 +43,9 @@ export function liveEffects(): Effects {
   const treasury = Keypair.fromSecretKey(bs58.decode(env("TREASURY_WALLET_SECRET")));
   const prize = new PublicKey(env("PRIZE_WALLET"));
   const mint = env("LOOT_MINT");
-  // LOOTBOX's own wallets never hold tickets.
-  const excluded = [ops.publicKey, treasury.publicKey, prize]
+  // LOOTBOX's own wallets, pump.fun's bonding curve and the PumpSwap pool it graduates into never
+  // hold tickets. They're published with each drop.
+  const excluded = [ops.publicKey, treasury.publicKey, prize, bondingCurveAddress(new PublicKey(mint)), poolAddress(new PublicKey(mint))]
     .map((k) => k.toBase58())
     .concat((process.env.EXCLUDED_WALLETS ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 
@@ -89,7 +90,10 @@ export function liveEffects(): Effects {
 
     async snapshot(d) {
       const slot = await conn.getSlot();
-      const snap = buildSnapshot(d.id, slot, new Date().toISOString(), await readHolders(mint), excluded);
+      const accounts = await readHolders(mint);
+      // Any other program account (another pool, a vault) can't sign a claim either, so it's left out too.
+      const programs = accounts.map((a) => a.owner).filter((owner) => !canSign(owner));
+      const snap = buildSnapshot(d.id, slot, new Date().toISOString(), accounts, [...excluded, ...programs]);
       const hash = hashSnapshot(snap);
       const memo = await postMemo(conn, ops, fingerprintMemo(d.id, "snapshot", String(slot), hash));
       check(
