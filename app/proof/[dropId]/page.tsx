@@ -43,7 +43,7 @@ export default function ProofPage({ params }: { params: { dropId: string } }) {
           <h2 className="display text-2xl">What you&apos;re trusting</h2>
           <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-cream/60">
             <li>Not LOOTBOX. Every check above runs in your browser against the raw proofs and on-chain records.</li>
-            <li>Zinc reports Amazon&apos;s order honestly, and AfterShip reports the carrier&apos;s status honestly.</li>
+            <li>Zinc reports Amazon&apos;s order and the carrier&apos;s delivery status honestly.</li>
             <li>Reclaim&apos;s attestors don&apos;t collude to fake a zkTLS proof.</li>
             <li>&quot;Delivered&quot; is the carrier&apos;s word until the winner signs their receipt (P5).</li>
           </ul>

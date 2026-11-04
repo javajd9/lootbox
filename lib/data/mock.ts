@@ -89,8 +89,8 @@ function demoProofs(): DropProofs {
       revealed: { source: "zinc", status: "request_processed", amazonOrderId, items: GTA_ITEMS.map(({ productId, quantity }) => ({ productId, quantity })), totalUsd: 1749.97 },
       attestation: { reclaim: "demo: real zkTLS proof goes here" },
     },
-    { type: "tracking", createdAt: "2026-10-07T09:30:00Z", revealed: { source: "aftership", carrier: "ups", tag: "InTransit" }, attestation: { reclaim: "demo" } },
-    { type: "tracking", createdAt: "2026-10-10T18:02:00Z", revealed: { source: "aftership", carrier: "ups", tag: "Delivered" }, attestation: { reclaim: "demo" } },
+    { type: "tracking", createdAt: "2026-10-07T09:30:00Z", revealed: { source: "zinc", milestone: "shipped", carrier: "ups", tag: "InTransit" }, attestation: { reclaim: "demo" } },
+    { type: "tracking", createdAt: "2026-10-10T18:02:00Z", revealed: { source: "zinc", milestone: "delivered", tag: "Delivered" }, attestation: { reclaim: "demo" } },
     { type: "receipt", createdAt: "2026-10-12T12:00:00Z", revealed: { message: receipt, wallet: drop.winnerWallet }, attestation: { signature: receiptSig } },
   ];
 

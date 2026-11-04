@@ -1,5 +1,5 @@
-// What an order proof may show. Reclaim's zkFetch proves a few small facts about Zinc's order
-// record, each picked out by a narrow regex: only the spans those regexes select are revealed (even
+// What an order or delivery proof may show. Reclaim's zkFetch proves a few small facts about Zinc's
+// order record, each picked out by a narrow regex: only the spans those regexes select are revealed (even
 // Reclaim's attestor sees nothing else), and the values in their named groups are what the proof
 // carries. The API key goes in a private header that never enters the proof. Nothing here can
 // select the shipping address, phone, email or tracking: every fact is a fixed word, a number,
@@ -9,7 +9,7 @@
 // lib/proofs/pii-guard) and is thrown away if any turn up.
 import type { ShippingAddress } from "@/lib/proofs/commitment";
 import type { WinnerPII } from "@/lib/proofs/pii-guard";
-import type { ZincOrder } from "./zinc";
+import type { ZincOrder, ZincTimeline } from "./zinc";
 
 export interface Fact {
   name: string;
@@ -36,8 +36,33 @@ export function orderFacts(order: ZincOrder): Fact[] {
   return facts;
 }
 
+// The facts a shipment milestone is proven by, from Zinc's timeline of the order: which order, and
+// the milestone with its time: `shipped` (the first package moving) or `delivered` (Zinc adds it
+// once every package is delivered). A shipped milestone also shows its carrier, the first thing in
+// its `detail`; the scan message and location come after it and are never reached. Tracking
+// numbers aren't in the timeline at all.
+export type Milestone = "shipped" | "delivered";
+
+export function milestoneFacts(timeline: ZincTimeline, milestone: Milestone): Fact[] {
+  if (!/^[0-9a-zA-Z-]{1,64}$/.test(timeline.order_id)) throw new Error(`milestoneFacts: odd order id "${timeline.order_id}"`);
+  const bare = `"type":\\s*"(?<milestone>${milestone})"`;
+  const withTime = `${bare},\\s*"label":\\s*"[A-Za-z ]{1,40}",\\s*"occurred_at":\\s*"(?<at>[0-9T:.+Z-]{10,40})"`;
+  const withCarrier = `${withTime},\\s*"source":\\s*"[a-z_]{1,30}",\\s*"detail":\\s*\\{\\s*"carrier":\\s*"(?<carrier>[a-z_]{1,20})"`;
+  // Zinc sends a milestone's fields in its schema's order (type, label, occurred_at, source, detail).
+  // If this one doesn't, the milestone is proven with less rather than not at all.
+  const text = JSON.stringify(timeline);
+  const regex = [...(milestone === "shipped" ? [withCarrier] : []), withTime, bare].find((r) => new RegExp(r).test(text)) ?? bare;
+  return [
+    { name: "orderId", regex: `"order_id":\\s*"(?<orderId>${timeline.order_id})"` },
+    { name: milestone, regex },
+  ];
+}
+
 export function zkFetchOptions(order: ZincOrder, authHeader: string) {
-  const facts = orderFacts(order);
+  return zkOptions(orderFacts(order), authHeader);
+}
+
+export function zkOptions(facts: Fact[], authHeader: string) {
   return {
     publicOptions: { method: "GET", headers: { accept: "application/json" } },
     privateOptions: {

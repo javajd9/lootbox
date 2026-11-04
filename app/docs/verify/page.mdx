@@ -35,7 +35,7 @@ Follow [Reproduce a draw](/docs/reproduce).
 
 Each of these packages carries a Reclaim proof. Verify it with Reclaim's open-source SDK (`verifyProof` in `@reclaimprotocol/js-sdk`), then check:
 
-- the proof's host is the order service or tracking service, not some other server;
+- the proof's host is the order service (`api.zinc.com`), not some other server;
 - the revealed fields match what the package says, such as products, quantities, order number or delivery status;
 - the order's items match the drop's locked product list.
 

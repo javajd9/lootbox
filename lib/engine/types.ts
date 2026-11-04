@@ -22,10 +22,12 @@ export interface DropRecord {
   ticket?: number;
   drawnAt?: string;
   claimDeadline?: string;
-  // Set by the claim, order and delivery systems (webhooks); the engine reacts to them.
+  // Set as the prize is claimed, bought and delivered. deliveredAt can also be set by hand (say the
+  // winner has it but Zinc never reports it), and the drop moves on to `delivered`.
   claimedAt?: string;
   orderedAt?: string;
   deliveredAt?: string;
+  deliveryProblem?: string; // a package the carrier couldn't deliver; alerted once, tracking goes on
   receivedAt?: string;
   hold?: string; // something needs a human; the engine leaves this drop alone until it's cleared
 }
@@ -52,6 +54,7 @@ export type Effect =
   | { type: "readRandomness"; round: number }
   | { type: "redraw"; round: number }
   | { type: "placeOrder" }
+  | { type: "trackDelivery" }
   | { type: "markDelivered" }
   | { type: "complete" }
   | { type: "alert"; key: string; message: string };
@@ -76,8 +79,15 @@ export interface Effects {
   requestRandomness(drop: DropRecord, round: number): Promise<void>;
   readRandomness(drop: DropRecord, round: number): Promise<{ winner: string; ticket: number } | null>;
   placeOrder(drop: DropRecord): Promise<OrderResult>; // one step of buying the prize; called each tick until it's done
+  // One step of following the prize to the winner; called each tick until it's delivered and proven.
+  // Optional: without it, a shipped drop waits.
+  trackDelivery?(drop: DropRecord): Promise<DeliveryResult>;
   alert(message: string): Promise<void>;
 }
 
 // Buying the prize: done (placed, proven, fingerprinted), stopped (needs a human), or still under way.
 export type OrderResult = { ok: true } | { ok: false; reason: string } | { waiting: string };
+
+// Delivering it: done (every package delivered, proven, fingerprinted), stopped (needs a human), or
+// still on its way, perhaps with a problem worth an alert.
+export type DeliveryResult = { ok: true; deliveredAt: string } | { ok: false; reason: string } | { waiting: string; problem?: string };

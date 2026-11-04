@@ -30,7 +30,7 @@ function runChecks(drop: Drop, packages: ProofPackage[], anchored: string[]): Ch
   const find = (t: ProofPackage["type"]) => packages.filter((p) => p.type === t);
   const payment = find("payment")[0];
   const order = find("order")[0];
-  const delivered = find("tracking").find((p) => p.revealed.tag === "Delivered");
+  const delivered = find("tracking").find((p) => p.revealed.milestone === "delivered" || p.revealed.tag === "Delivered");
   const receipt = find("receipt")[0];
   const chain = verifyChain(packages, anchored);
   // Demo packages carry placeholder attestations; live ones carry real Solana txs / Reclaim proofs.
@@ -66,7 +66,7 @@ function runChecks(drop: Drop, packages: ProofPackage[], anchored: string[]): Ch
     {
       id: "P4",
       label: "Delivered",
-      explain: "A zkTLS proof of AfterShip's tracking data showing the carrier marked it delivered. Location hidden.",
+      explain: "A zkTLS proof of Zinc's tracking record showing every package delivered. Tracking numbers and locations hidden.",
       result: liveOrDemo(!!delivered),
     },
     {

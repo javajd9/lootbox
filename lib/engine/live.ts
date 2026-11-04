@@ -13,7 +13,8 @@ import { pickWinner } from "@/lib/draws/weighted-pick";
 import { solPriceUsd } from "@/lib/treasury/price";
 import { findFunding, moveToPrize, treasuryCents } from "@/lib/treasury/treasury";
 import { claimStore } from "@/lib/claims/store";
-import { liveOrderDeps } from "@/lib/orders/live";
+import { deliveryStep } from "@/lib/orders/delivery";
+import { liveDeliveryDeps, liveOrderDeps } from "@/lib/orders/live";
 import { orderStep } from "@/lib/orders/order";
 import { withClaims } from "./claims";
 import { dropConfig, initialState, withQueuedDrops } from "./drops";
@@ -172,6 +173,11 @@ export function liveEffects(): Effects {
       // Set up only when an order is due, so a missing Zinc key never stops the rest of the engine.
       if (!process.env.ZINC_API_KEY) return { waiting: "Zinc isn't configured yet (ZINC_API_KEY)" };
       return orderStep(d, liveOrderDeps(conn, ops));
+    },
+
+    async trackDelivery(d) {
+      if (!process.env.ZINC_API_KEY) return { waiting: "Zinc isn't configured yet (ZINC_API_KEY)" };
+      return deliveryStep(d, liveDeliveryDeps(conn, ops));
     },
 
     async alert(message) {

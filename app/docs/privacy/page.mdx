@@ -17,7 +17,7 @@ LOOTBOX proves that a prize reached its winner without ever publishing who or wh
 | Winning wallet | Everyone, since it's on Solana | Yes | Yes |
 | Name, address, phone | The checkout (Shopify), the order service (Zinc), the retailer and the carrier: only what's needed to ship | **No** | **Never.** Only a salted fingerprint |
 | Email | The checkout, for order updates | **No** | **Never** |
-| Tracking numbers | The order and tracking services | Only a fingerprint | **Never.** Only a keyed fingerprint |
+| Tracking numbers | The order service (Zinc) and the carrier | **No** | **Never** |
 | Products, prices, order number | Everyone | Yes | Yes. This is what proves the purchase |
 
 The website's code reads the shipping details from the checkout once, passes them to the order, and never writes them to LOOTBOX's database.

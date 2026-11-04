@@ -39,6 +39,27 @@ export interface ZincPriceComponents {
   cart_items?: { name?: string | null; product_id?: string | null; quantity?: number | null; unit_price?: number | null; line_total?: number | null }[] | null;
 }
 
+// A package's carrier-reported state. Not final until `delivered`: one waiting for pickup can still
+// go back out, and an undeliverable one can still be returned.
+export type TrackingStatus = "pending" | "in_transit" | "available_for_pickup" | "delivered" | "undeliverable";
+
+// One package. Zinc also returns its tracking number and carrier scans (with locations); the engine
+// never reads or keeps those, since a carrier's page can show where it was delivered.
+export interface ZincPackage {
+  id: string;
+  carrier: string;
+  status?: TrackingStatus | null;
+  [unread: string]: unknown; // tracking_number, checkpoints, ...
+}
+
+// GET /orders/{id}/timeline: the order's milestones, oldest first. `delivered` appears once every
+// package on the order has been delivered. Its `detail` holds the delivery location: never read.
+export interface ZincTimeline {
+  order_id: string;
+  current_status: ZincStatus;
+  milestones: { type: string; label: string; occurred_at: string; source: string }[];
+}
+
 // The parts of Zinc's order object the engine reads.
 export interface ZincOrder {
   id: string;
@@ -46,6 +67,7 @@ export interface ZincOrder {
   max_price: number;
   items: { id: string; url: string; quantity: number; status: string }[];
   merchant_order_ids?: string[];
+  tracking_numbers?: ZincPackage[] | null;
   job_result?: {
     success?: boolean | null;
     error?: string | null;
@@ -68,6 +90,12 @@ export interface ZincClient {
   getOrder(id: string): Promise<ZincOrder>;
 }
 
+// Following a placed order's packages until they're delivered.
+export interface ZincTracker {
+  getOrder(id: string): Promise<ZincOrder>;
+  getTimeline(id: string): Promise<ZincTimeline>;
+}
+
 export interface ZincSettings {
   apiKey: string;
   baseUrl: string;
@@ -87,8 +115,9 @@ export function zincSettings(env: Record<string, string | undefined> = process.e
 export const isTestKey = (apiKey: string) => apiKey.startsWith("zn_test_");
 
 export const orderUrl = (s: ZincSettings, id: string) => `${s.baseUrl}/orders/${encodeURIComponent(id)}`;
+export const timelineUrl = (s: ZincSettings, id: string) => `${orderUrl(s, id)}/timeline`;
 
-export function zincClient(s: ZincSettings = zincSettings(), fetcher: typeof fetch = fetch): ZincClient {
+export function zincClient(s: ZincSettings = zincSettings(), fetcher: typeof fetch = fetch): ZincClient & ZincTracker {
   async function call<T>(method: string, url: string, body?: unknown): Promise<T> {
     const res = await fetcher(url, {
       method,
@@ -109,5 +138,6 @@ export function zincClient(s: ZincSettings = zincSettings(), fetcher: typeof fet
   return {
     createOrder: (req) => call<ZincOrder>("POST", `${s.baseUrl}/orders`, req),
     getOrder: (id) => call<ZincOrder>("GET", orderUrl(s, id)),
+    getTimeline: (id) => call<ZincTimeline>("GET", timelineUrl(s, id)),
   };
 }

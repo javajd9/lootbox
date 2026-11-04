@@ -16,10 +16,11 @@ Once the winner has claimed, the prize is bought and shipped automatically. Nobo
 
 ## Delivery
 
-- Tracking numbers come back with the order and are registered with **AfterShip**, which follows the carrier until delivery.
-- Each status change, from shipped to in transit to delivered, becomes a proof. See [the 8 proofs](/docs/proofs).
-- **Tracking numbers are never published.** Carrier pages can show a delivery city or ZIP code, so proofs only include a keyed fingerprint of the number.
-- A bundle can arrive in several packages. Each one is tracked.
+- **Zinc follows the packages** with the carrier, and LOOTBOX checks Zinc's record of the order every minute.
+- **Two moments become proofs:** when the first package starts moving (**Shipped**: the carrier and the time) and when every package has arrived (**Delivered**: the time). Each is a zkTLS proof of Zinc's own record, with its fingerprint on Solana. See [the 8 proofs](/docs/proofs).
+- **Tracking numbers are never published or stored by LOOTBOX.** Carrier pages can show a delivery city or ZIP code, so the proofs leave out tracking numbers, scan locations and the address.
+- A bundle can arrive in several packages. It only counts as delivered once all of them have arrived.
+- If the carrier can't deliver a package, or nothing has arrived three weeks after the order, the team is alerted to sort it out with Zinc.
 
 <Rule rule="shipping" />
 

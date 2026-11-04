@@ -101,6 +101,9 @@ async function perform(fx: Effects, d: DropRecord, e: Effect, now: Date, rng: ()
     case "placeOrder":
       result = await fx.placeOrder(d);
       break;
+    case "trackDelivery":
+      result = fx.trackDelivery ? await fx.trackDelivery(d) : { waiting: "delivery tracking isn't set up" };
+      break;
     case "alert":
       await fx.alert(e.message);
       break;

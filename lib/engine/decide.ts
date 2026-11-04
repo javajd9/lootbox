@@ -4,12 +4,13 @@
 import { RULES } from "@/lib/config/rules";
 import { CLAIM_DAYS } from "@/lib/live/types";
 import { nextSnapshotAt } from "./schedule";
-import type { DropRecord, Effect, EngineState, OrderResult, Stage, Step } from "./types";
+import type { DeliveryResult, DropRecord, Effect, EngineState, OrderResult, Stage, Step } from "./types";
 
 const DAY = 864e5;
 const RECEIPT_WAIT_DAYS = 14; // after delivery, how long to wait for the winner's signed receipt
 const SLOW_RANDOMNESS_MS = 10 * 60_000;
 const SLOW_ORDER_MS = DAY; // Zinc usually places an order within hours
+const SLOW_DELIVERY_MS = 21 * DAY; // retailer orders usually arrive within a week or two
 
 // The winner is known.
 const DRAWN = new Set<Stage>(["claiming", "fulfilling", "delivered", "complete"]);
@@ -69,7 +70,12 @@ export function decide(state: EngineState, now: Date): Step[] {
         } else if (t >= at(d.claimDeadline)) add(d, { type: "redraw", round: d.round + 1 });
         break;
       case "fulfilling":
-        if (d.deliveredAt) add(d, { type: "markDelivered" });
+        if (d.deliveredAt) add(d, { type: "markDelivered" }); // set by hand
+        else {
+          add(d, { type: "trackDelivery" });
+          if (d.deliveryProblem) add(d, alert(`delivery-problem:${d.id}:${d.deliveryProblem}`, `${d.id}: ${d.deliveryProblem}.`));
+          if (t - at(d.orderedAt) > SLOW_DELIVERY_MS) add(d, alert(`slow-delivery:${d.id}`, `${d.id}: the prize was ordered 3 weeks ago and still isn't delivered.`));
+        }
         break;
       case "delivered":
         if (d.receivedAt || t >= at(d.deliveredAt) + RECEIPT_WAIT_DAYS * DAY) add(d, { type: "complete" });
@@ -150,6 +156,11 @@ export function apply(d: DropRecord, effect: Effect, result: unknown, now: Date,
       const r = result as OrderResult;
       if ("waiting" in r) return d; // Zinc is still working on it; look again next tick
       return r.ok ? { ...d, stage: "fulfilling", orderedAt: iso } : { ...d, hold: r.reason };
+    }
+    case "trackDelivery": {
+      const r = result as DeliveryResult;
+      if ("waiting" in r) return r.problem === d.deliveryProblem ? d : { ...d, deliveryProblem: r.problem }; // still on its way
+      return r.ok ? { ...d, stage: "delivered", deliveredAt: r.deliveredAt, deliveryProblem: undefined } : { ...d, hold: r.reason };
     }
     case "markDelivered":
       return { ...d, stage: "delivered" };

@@ -33,8 +33,8 @@ Every drop moves through eight steps. Each step is backed by evidence that comes
 | **3. Claimed** | The winning wallet's signature, plus the address fingerprint | Wallet, fingerprint | The address |
 | **4. Paid** | USDC transfer from the treasury to the purchasing account on Solana | Amount, transaction | Nothing |
 | **5. Ordered** | A zkTLS proof of the order service's own response | Products, quantities, prices, retailer order number, status | Name, address, phone, API keys |
-| **6. Shipped** | A zkTLS proof of the tracking service's response | Carrier, status, time | Tracking number, locations |
-| **7. Delivered** | Same as above, at delivery | Carrier, "Delivered", time | Tracking number, locations, who signed |
+| **6. Shipped** | A zkTLS proof of the order service's tracking record | Carrier, "shipped", time | Tracking number, locations |
+| **7. Delivered** | Same as above, once every package has arrived | "Delivered", time | Tracking number, locations, who signed |
 | **8. Received** | A message signed by the winning wallet | The message, the signature | Nothing private |
 
 ## zkTLS, in one paragraph
