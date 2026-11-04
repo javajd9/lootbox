@@ -27,13 +27,13 @@ const WHALE_USD = 50;
 const per = RULES.tokensPerTicket.toLocaleString("en-US");
 const reducedMotion = () => typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function Countdown({ from, speed }: { from: number; speed: number }) {
+function Countdown({ from }: { from: number }) {
   const [n, setN] = useState(from);
   useEffect(() => {
     if (n <= 1) return;
-    const t = setTimeout(() => setN(n - 1), 1000 / speed);
+    const t = setTimeout(() => setN(n - 1), 1000);
     return () => clearTimeout(t);
-  }, [n, speed]);
+  }, [n]);
   return (
     <span key={n} className="inline-block min-w-[0.7em] animate-count-in tabular-nums">
       {n}
@@ -64,7 +64,7 @@ function RollingDigit({ value, locked }: { value: number; locked: boolean }) {
   );
 }
 
-function DrawReveal({ draw, speed, onDone }: { draw: DrawResult; speed: number; onDone: () => void }) {
+function DrawReveal({ draw, onDone }: { draw: DrawResult; onDone: () => void }) {
   const width = String(draw.totalTickets).length;
   const digits = String(draw.ticket).padStart(width, "0").split("").map(Number);
   const [locked, setLocked] = useState(0);
@@ -72,14 +72,14 @@ function DrawReveal({ draw, speed, onDone }: { draw: DrawResult; speed: number; 
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
-    const first = 1200 / speed;
-    const step = 700 / speed;
+    const first = 1200;
+    const step = 700;
     digits.forEach((_, i) => timers.push(setTimeout(() => setLocked(i + 1), first + i * step)));
     const all = first + (digits.length - 1) * step;
-    timers.push(setTimeout(() => setRevealed(true), all + 800 / speed));
-    timers.push(setTimeout(onDone, all + 2600 / speed));
+    timers.push(setTimeout(() => setRevealed(true), all + 800));
+    timers.push(setTimeout(onDone, all + 2600));
     return () => timers.forEach(clearTimeout);
-  }, [draw.ticket, speed]); // eslint-disable-line react-hooks/exhaustive-deps -- runs once per draw
+  }, [draw.ticket]); // eslint-disable-line react-hooks/exhaustive-deps -- runs once per draw
 
   return (
     <div>
@@ -189,12 +189,12 @@ function Plates({ items }: { items: PrizeItem[] }) {
 }
 
 export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) {
-  const { state, demo, speed, nextDrop, finishDraw, controls } = useLive();
+  const { state, nextDrop, finishDraw } = useLive();
   const { phase, drop, fundedUsd, tickets, watching, trades, draw, lastWinner } = state;
   const pct = Math.min(1, fundedUsd / drop.goalUsd);
   const toGo = Math.max(0, drop.goalUsd - fundedUsd);
-  const preLaunch = !demo && (state.upcoming ?? (fundedUsd === 0 && !lastWinner));
-  // Live, the draw starts when the engine's pause ends; the demo counts down from 5.
+  const notOpen = state.upcoming ?? (fundedUsd === 0 && !lastWinner);
+  // The draw starts when the engine's pause ends.
   const untilDraw = state.drawAt ? Math.max(1, Math.ceil((Date.parse(state.drawAt) - Date.now()) / 1000)) : 5;
   const final = phase === "filling" && pct >= 0.9;
 
@@ -294,16 +294,10 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                         <AnimatedNumber key={drop.id} value={fundedUsd} format={usd} />
                       </p>
                       <p className="t-lead mt-5">
-                        {preLaunch ? (
-                          <>The {usd(drop.goalUsd)} pool opens at launch</>
-                        ) : (
-                          <>
-                            <strong>
-                              <AnimatedNumber key={drop.id} value={toGo} format={usd} /> to go
-                            </strong>{" "}
-                            of the {usd(drop.goalUsd)} prize pool
-                          </>
-                        )}
+                        <strong>
+                          <AnimatedNumber key={drop.id} value={toGo} format={usd} /> to go
+                        </strong>{" "}
+                        of the {usd(drop.goalUsd)} prize pool
                       </p>
                       {label && (
                         <p key={label.id} className={`t-lead absolute -top-8 left-0 animate-float-off font-bold motion-reduce:animate-none ${label.big ? "text-[1.3em]" : ""}`}>
@@ -333,13 +327,13 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                     <>
                       <p className="t-display">Funded.</p>
                       <p className="t-title mt-4">
-                        Drawing in <Countdown key={state.drawAt} from={untilDraw} speed={speed} />
+                        Drawing in <Countdown key={state.drawAt} from={untilDraw} />
                       </p>
                       <p className="t-lead mt-4">Asking Solana for a random number. {tickets.toLocaleString("en-US")} tickets are locked in.</p>
                     </>
                   )}
 
-                  {phase === "drawing" && draw && <DrawReveal draw={draw} speed={speed} onDone={finishDraw} />}
+                  {phase === "drawing" && draw && <DrawReveal draw={draw} onDone={finishDraw} />}
 
                   {phase === "winner" && draw && (
                     <>
@@ -356,7 +350,7 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                       </div>
                       {nextDrop && (
                         <p className="t-small mt-5">
-                          Drop {dropNo(nextDrop.number)}, {nextDrop.title}, opens in <Countdown from={Math.round(WINNER_HOLD_MS / 1000)} speed={speed} />
+                          Drop {dropNo(nextDrop.number)}, {nextDrop.title}, opens in <Countdown from={Math.round(WINNER_HOLD_MS / 1000)} />
                         </p>
                       )}
                     </>
@@ -408,7 +402,7 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                 </div>
                 <div className="text-center">
                   <p className="t-title">{stubWord}</p>
-                  {!preLaunch && (
+                  {!notOpen && (
                     <p className="t-small mt-2">
                       {tickets.toLocaleString("en-US")} tickets in the box
                       {watching > 0 && <> · {watching.toLocaleString("en-US")} watching</>}
@@ -424,16 +418,6 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
           </div>
         </div>
       </div>
-
-      {demo && (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-wrap items-center gap-2 bg-panel p-2 text-sm">
-          <span className="px-1 font-bold text-loot">Demo</span>
-          <button className="bg-ink px-2 py-1 hover:text-loot" onClick={() => controls.addUsd(100)}>+$100</button>
-          <button className="bg-ink px-2 py-1 hover:text-loot" onClick={controls.fundNow}>Fund now</button>
-          <button className="bg-ink px-2 py-1 hover:text-loot" onClick={controls.reset}>Reset</button>
-          <button className="bg-ink px-2 py-1 hover:text-loot" onClick={() => controls.setSpeed(speed === 1 ? 4 : 1)}>{speed}x</button>
-        </div>
-      )}
     </section>
   );
 }

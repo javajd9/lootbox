@@ -4,23 +4,12 @@
 // so a draw on the stage shows up in the ledger at the same moment.
 import { createContext, useContext } from "react";
 import { useLiveDrop, type LiveDrop, type StageDrop } from "@/lib/live/useLiveDrop";
-import type { PastDrop } from "@/lib/live/types";
 
 type Live = ReturnType<typeof useLiveDrop>;
 const LiveContext = createContext<Live | null>(null);
 
-export function LiveProvider({
-  initial,
-  upNext,
-  demoHistory,
-  children,
-}: {
-  initial: LiveDrop;
-  upNext: StageDrop[];
-  demoHistory: PastDrop[];
-  children: React.ReactNode;
-}) {
-  const live = useLiveDrop(initial, upNext, demoHistory);
+export function LiveProvider({ initial, upNext, children }: { initial: LiveDrop; upNext: StageDrop[]; children: React.ReactNode }) {
+  const live = useLiveDrop(initial, upNext);
   return <LiveContext.Provider value={live}>{children}</LiveContext.Provider>;
 }
 

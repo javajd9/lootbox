@@ -26,7 +26,7 @@ export const memo = fingerprintMemo("DROP-001", "shipped", hashPackage(pkg));
 
 # The 8 proofs
 
-Every drop moves through eight steps. Each step is backed by evidence that comes from the source, not from LOOTBOX.
+Every drop goes through eight steps. Each one is backed by evidence from the place it happened: Solana, the order service, or the winner's wallet.
 
 | Step | Proven by | Public | Hidden |
 |---|---|---|---|
@@ -39,23 +39,19 @@ Every drop moves through eight steps. Each step is backed by evidence that comes
 | **7. Delivered** | Same as above, once every package has arrived | "Delivered", time | Tracking number, locations, who signed |
 | **8. Received** | A message signed by the winning wallet | The message, the signature | Nothing private |
 
-## zkTLS, in one paragraph
+## zkTLS
 
-When a server sends data over HTTPS, the connection is encrypted and authenticated, but normally only you can see that it happened. **zkTLS** (LOOTBOX uses Reclaim Protocol's zkFetch) adds an independent witness to the connection and produces a proof that this exact response came from that server. Selected parts can be blacked out without breaking the proof. So instead of a screenshot of an order, you get the order service's real response with the address removed, and anyone can verify it wasn't edited.
+HTTPS encrypts and authenticates a connection, but only the two ends can see what was sent. **zkTLS** (LOOTBOX uses Reclaim Protocol's zkFetch) brings an independent witness into the connection and produces a proof that a given response really came from a given server. Parts of the response can be hidden without breaking the proof. For an order, that means you see the order service's actual response with the address hidden, and anyone can check it wasn't edited.
 
 ## Fingerprints and the chain
 
 Every fingerprint LOOTBOX posts is a Solana memo in one format, `LOOTBOX|v1|<drop>|<step>|<values>`, signed by the proof publisher on [Addresses](/docs/addresses).
 
-**Steps 1 to 4 happen on Solana**, so their evidence is the transaction itself. Paid, Drawn and Claimed each carry their fingerprint in that transaction.
+Steps 1 to 4 happen on Solana, so their evidence is the transaction itself. Paid, Drawn and Claimed each carry their fingerprint in that transaction.
 
-**Steps 5 to 8 come from outside Solana**, so each one's evidence is wrapped in a **proof package**, and every package includes the fingerprint of the one before it:
+Steps 5 to 8 happen off Solana. Each one's evidence goes into a **proof package**, and every package includes the fingerprint of the one before it. Editing a package changes its fingerprint and breaks the link from the next one, and removing or reordering packages breaks the chain too. Each package's fingerprint is also posted on Solana when it's published, so even the newest one can't be changed later.
 
-- **Editing a package changes its fingerprint**, which breaks the link from the next one.
-- **Removing or reordering packages breaks the chain.**
-- **Each package's fingerprint is posted on Solana when it's published**, so even the newest package can't be changed later.
-
-Here's a package built by the same code that publishes them. It's the Shipped step, chained to the Ordered step before it:
+Below is a package built by the same code that publishes them: the Shipped step, chained to the Ordered step before it.
 
 <CodeBlock label="Proof package">{JSON.stringify(pkg, null, 2)}</CodeBlock>
 
@@ -65,4 +61,4 @@ Here's a package built by the same code that publishes them. It's the Shipped st
 
 ## Where to see them
 
-Every drop has a proof page that re-checks Paid, Ordered, Delivered, Received and the whole package chain in your browser, and links the raw data for everything else. Try the [demo proof page](/proof/DROP-000), including **Try tampering**, to watch a check fail. To check things by hand, see [Verify it yourself](/docs/verify).
+Every drop has a [proof page](/proof). It re-checks Paid, Ordered, Delivered, Received and the whole package chain in your browser, and links the raw data for the rest. Once a drop has published proofs, **Try tampering** changes one number in its order proof so you can watch a check fail. To check things by hand, see [Verify it yourself](/docs/verify).

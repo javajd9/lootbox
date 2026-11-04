@@ -1,5 +1,5 @@
 // The Solana connection and the ops wallet: the published wallet that signs every proof
-// fingerprint and every randomness request. Devnet (Solana's free test network) until launch.
+// fingerprint and every randomness request. The cluster comes from SOLANA_CLUSTER.
 import { Connection, Keypair, TransactionMessage, VersionedTransaction, clusterApiUrl, type AddressLookupTableAccount, type Transaction, type TransactionInstruction } from "@solana/web3.js";
 import bs58 from "bs58";
 

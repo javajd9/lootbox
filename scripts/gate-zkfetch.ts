@@ -1,4 +1,4 @@
-// Day-1 gate #2: can we get a Reclaim zkTLS proof of Zinc's order record that
+// zkTLS check: can we get a Reclaim zkTLS proof of Zinc's order record that
 // (a) verifies, (b) hides our API key, and (c) contains NONE of the shipping details?
 // It uses exactly the options the engine uses (lib/orders/redact).
 // Usage: fill .env (ZINC_API_KEY, ZINC_ORDER_ID of a placed order, RECLAIM_*, and the order's

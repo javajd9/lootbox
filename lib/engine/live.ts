@@ -1,4 +1,4 @@
-// The engine's real actions: on Solana (devnet until launch) and in the database, where every
+// The engine's real actions: on Solana and in the database, where every
 // public record is saved exactly as it was hashed, so anyone can re-check it.
 import { Keypair, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";

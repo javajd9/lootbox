@@ -27,9 +27,7 @@ export async function liveDropProofs(id: string): Promise<{ drop: Drop; packages
   const drop: Drop = {
     id: row.id,
     title: row.title,
-    tagline: "",
     status: row.status as DropStatus,
-    demo: false,
     goalUsd,
     fundedUsd: row.funded_tx ? goalUsd : 0,
     items: [],

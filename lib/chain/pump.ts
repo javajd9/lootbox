@@ -1,5 +1,5 @@
 // pump.fun's creator fees, from the programs' public IDLs (github.com/pump-fun/pump-public-docs,
-// October 2026). $LOOT is launched from the treasury wallet, so the treasury is the coin's creator
+// October 2026). $LOOT is created from the treasury wallet, so the treasury is the coin's creator
 // and every trade pays it a fee. That fee can be waiting in four places until it's collected:
 //
 //   on the bonding curve   BondingCurve.creator_fee   new-style trades (buy_v3 / sell_v3) keep it on the curve

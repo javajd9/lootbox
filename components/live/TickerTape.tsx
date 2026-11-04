@@ -3,24 +3,24 @@
 // A thin, always-moving line of what's happening right now: fees landing, tickets in the box,
 // the latest winner, proofs on-chain. Carries the ticket's "live" feeling down the page.
 import { CheckMark } from "@/components/brand/Logo";
-import { dropNo, feeLabel, shortWallet } from "@/lib/live/format";
+import { dropNo, feeLabel, shortWallet, usd } from "@/lib/live/format";
 import { dropCode, isOnTheWay } from "@/lib/live/types";
 import { useLive } from "./LiveProvider";
 
 type Item = { key: string; text: React.ReactNode; gold?: boolean; check?: boolean };
 
 export function TickerTape() {
-  const { state, demo } = useLive();
+  const { state } = useLive();
   const { drop, fundedUsd, tickets, trades, history, phase } = state;
   const pct = Math.floor((fundedUsd / drop.goalUsd) * 100);
   const proofs = history.reduce((n, h) => n + Object.values(h.done).filter(Boolean).length, 0);
   const latest = history[0];
 
   const items: Item[] = [];
-  if (!demo && fundedUsd === 0 && !latest) {
+  if (fundedUsd === 0 && !latest) {
     items.push(
       { key: "d", text: `Drop ${dropNo(drop.number)} · ${drop.title}`, gold: true },
-      { key: "o", text: "Pool opens at launch" },
+      { key: "o", text: `${usd(drop.goalUsd)} prize pool` },
       { key: "t", text: "1 ticket = 10,000 $LOOT" },
       { key: "s", text: "Draw starts the second the box fills" },
       { key: "c", text: "Don't trust. Check.", check: true },

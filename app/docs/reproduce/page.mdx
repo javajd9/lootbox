@@ -14,7 +14,7 @@ export const example = pickWinner(new Uint8Array(64).fill(7), exampleEntries);
 
 # Reproduce a draw
 
-Anyone can re-run a LOOTBOX draw from public data and check they get the same winner. This page explains how.
+Anyone can re-run a LOOTBOX draw from public data and check that it gives the same winner.
 
 ## What you need
 
@@ -50,9 +50,9 @@ ticket = index + 1                                # the number shown on the live
 winner = the wallet whose ticket range contains ticket
 ```
 
-## A worked example, computed by the real code
+## Worked example
 
-Three wallets hold 100, 300 and 600 tickets (1,000 in total), and the randomness is 64 bytes of `0x07`. This page runs the actual selection function while it renders:
+Three wallets hold 100, 300 and 600 tickets (1,000 in total), and the randomness is 64 bytes of `0x07`. The table below comes from the same selection function the draw uses:
 
 | | |
 |---|---|
@@ -61,4 +61,4 @@ Three wallets hold 100, 300 and 600 tickets (1,000 in total), and the randomness
 | Winning ticket | #{(example.index + 1n).toString()} |
 | Winner | **{example.wallet}** |
 
-Any implementation of the steps above must produce the same result.
+Any correct implementation of the steps above gives the same result.

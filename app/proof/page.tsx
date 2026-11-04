@@ -49,11 +49,15 @@ function DropRow({ d }: { d: DropSummary }) {
   );
 }
 
-export default async function ProofIndex() {
-  const drops = await dropSummaries().catch((err) => {
-    console.error("proof index", err);
-    return null;
-  });
+export default async function ProofIndex({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+  // Devnet drops are only listed with /proof?live, the same switch the homepage uses.
+  const listed = CLUSTER === "mainnet-beta" || searchParams.live !== undefined;
+  const drops = listed
+    ? await dropSummaries().catch((err) => {
+        console.error("proof index", err);
+        return null;
+      })
+    : [];
 
   return (
     <HudSection index="04" label="The proof">
@@ -66,12 +70,6 @@ export default async function ProofIndex() {
             money leaving the treasury, the order, the delivery, the winner&apos;s signature, and that nothing was edited after it
             was posted. See <Link className="underline" href="/docs/proofs">the 8 proofs</Link> for what each step proves.
           </p>
-          {CLUSTER === "devnet" && (
-            <p className="mt-6 max-w-3xl border-l-2 border-loot pl-4 text-sm text-cream/70">
-              These are test drops on Solana&apos;s devnet. Their prizes are Zinc&apos;s sandbox test product, so nothing real is
-              bought, but every proof page runs its checks against the real records. Real drops start at launch.
-            </p>
-          )}
         </header>
 
         <section>
@@ -94,16 +92,6 @@ export default async function ProofIndex() {
               ))}
             </ul>
           )}
-        </section>
-
-        <section className="card flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="font-bold">Demo rehearsal (sample data)</p>
-            <p className="text-sm text-cream/60">
-              A finished drop with every proof filled in. Press <span className="text-cream">Try tampering</span> to watch a check fail.
-            </p>
-          </div>
-          <Link href="/proof/DROP-000" className="btn-ghost">Open the demo</Link>
         </section>
       </div>
     </HudSection>

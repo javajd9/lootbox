@@ -41,7 +41,7 @@ export function makeCommitment(a: ShippingAddress): { commitment: string; salt: 
   return commitWithSalt(a, bytesToHex(crypto.getRandomValues(new Uint8Array(32))));
 }
 
-// Only for reproducible demo data; real claims always use makeCommitment's fresh salt.
+// The fingerprint for a given salt. Real claims always go through makeCommitment's fresh salt.
 export function commitWithSalt(a: ShippingAddress, saltHex: string): { commitment: string; salt: string; normalized: string } {
   const normalized = normalizeAddress(a);
   return { commitment: digest(normalized, hexToBytes(saltHex)), salt: saltHex, normalized };

@@ -8,21 +8,21 @@ export const per = RULES.tokensPerTicket.toLocaleString("en-US");
 
 # Tickets
 
-Holding $LOOT puts tickets in the box. More tickets, better odds. There's nothing to buy or register.
+Holding $LOOT puts tickets in the box, and more tickets means better odds. There's nothing to buy and nothing to sign up for.
 
 ## The rule
 
 > Every **{per} $LOOT** of your average balance during a drop is **one ticket**. Fractions round down.
 
-Your average is taken across several **snapshots**: readings of every $LOOT balance on Solana, taken at random times nobody knows in advance.
+Your average comes from several **snapshots**. A snapshot records every $LOOT balance on Solana at a random time nobody knows in advance.
 
 <Rule rule="snapshots" />
 
-Your chance of winning a drop is your tickets divided by all tickets in the box.
+Your chance of winning a drop is your tickets divided by all the tickets in the box.
 
 ## Why an average
 
-If tickets were based on one moment, someone could buy a huge bag right before the draw and sell right after. Averaging across unannounced snapshots means a last-minute buy only counts in the snapshots that come after it.
+If tickets came from a single moment, someone could buy a big bag right before the draw and sell right after. Averaging over unannounced snapshots means a last-minute buy only counts in the snapshots taken after it.
 
 ## Example
 
@@ -35,15 +35,15 @@ Six snapshots are taken during a drop.
 | C | 9,000 the whole time | 9,000 | **0**, under one ticket |
 | D | 250,000, sells half after snapshot 3 | 187,500 | **18** |
 
-## Good to know
+## Other details
 
-- **One wallet is never worse than several.** Odds are proportional, so splitting doesn't help, and rounding down in each wallet can only lose you fractions.
-- **Every drop counts separately.** Each drop has its own snapshots. If you keep holding, you're in every drop.
-- **Selling lowers your balance in every snapshot after the sale.** Tickets from earlier snapshots still count toward your average.
-- **Some wallets can never win.** The pump.fun bonding curve, the liquidity pool, the team and dev wallets, and the treasury are excluded. Their addresses are listed on [Addresses](/docs/addresses).
-- **Only wallets someone holds the key to get tickets.** An account run by a program, such as another liquidity pool or a vault, can't sign a claim, so it's left out of every snapshot.
-- **Check your tickets** any time from the "Check your tickets" link on the [live page](/).
+- Splitting your $LOOT across wallets doesn't help. Odds are proportional, and each wallet rounds down on its own, so splitting can only lose you fractions.
+- Each drop has its own snapshots. If you keep holding, you're in every drop.
+- Selling lowers your balance in the snapshots after the sale. Earlier snapshots still count toward your average.
+- Some wallets can never win: the pump.fun bonding curve, the liquidity pool, the team and dev wallets, and the treasury. Their addresses are on [Addresses](/docs/addresses).
+- Accounts run by a program, such as another liquidity pool or a vault, are left out of every snapshot because they can't sign a claim.
+- You can look up a wallet in the **Your tickets** box on the [live page](/).
 
-## In the code
+## Source
 
-Ticket math is built and tested: averaging, exclusions, rounding, and the last-minute-buyer case. See `lib/draws/snapshot.ts` and `lib/draws/tickets.ts`.
+The ticket math is in `lib/draws/snapshot.ts` and `lib/draws/tickets.ts`.

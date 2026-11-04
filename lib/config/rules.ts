@@ -22,5 +22,5 @@ export const RULE_TEXT = {
   leftoverFees: "If the pool goes past its goal before the draw lands, the extra rolls into the next drop's pool.",
   priceChange:
     "If a product's price rises above its cap, the order isn't placed. The fix (a top-up, or an equal-or-better substitute) is announced publicly before anything is bought.",
-  shipping: "At launch, prizes ship to addresses in the United States. Options for winners elsewhere are still being worked out.",
+  shipping: "Prizes ship to addresses in the United States.",
 };

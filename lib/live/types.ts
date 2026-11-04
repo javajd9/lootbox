@@ -26,9 +26,6 @@ export interface PastDrop {
   totalTickets: number;
   walletTickets: number; // tickets the winning wallet held
   done: Partial<Record<StepKey, string>>; // step → ISO time it was proven
-  sample?: boolean;
-  code?: string; // display code instead of the padded number (sample data)
-  proofId?: string; // proof page to link, when it differs from id
   complete?: boolean; // finished without the winner's signature (14 days after delivery)
 }
 
@@ -49,8 +46,8 @@ export const isFinished = (d: PastDrop) => !!d.done.received || !!d.complete;
 // Drawn and not finished yet.
 export const isOnTheWay = (d: PastDrop) => !!d.done.drawn && !isFinished(d);
 
-export function dropCode(d: Pick<PastDrop, "number" | "code">) {
-  return d.code ?? String(d.number).padStart(3, "0");
+export function dropCode(d: Pick<PastDrop, "number">) {
+  return String(d.number).padStart(3, "0");
 }
 
 // One plain-English line for where a prize is right now.

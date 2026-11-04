@@ -26,7 +26,7 @@ const QUEUES: Record<Cluster, DropConfig[]> = {
     { id: "DEV-002", number: 2, title: "Devnet test drop", goalCents: 1_000, prize: [TEST_PRODUCT] },
     { id: "DEV-003", number: 3, title: "Devnet test drop", goalCents: 1_000, prize: [TEST_PRODUCT] },
   ],
-  // Stays shut until LAUNCH_AT is set. Its ASINs and caps are filled in (lib/config/prizes) before launch.
+  // Stays shut until LAUNCH_AT is set. Its ASINs and caps (lib/config/prizes) are filled in before then.
   "mainnet-beta": [
     { id: "DROP-001", number: 1, title: "GTA VI Bundle", goalCents: 200_000, opensAt: process.env.LAUNCH_AT || "2099-01-01T00:00:00Z", prize: GTA_VI_BUNDLE },
   ],

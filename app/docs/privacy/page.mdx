@@ -39,8 +39,8 @@ Without the secret, guessing addresses doesn't help, because each guess would al
 
 ## Leak guard
 
-Before any proof is published, an automatic check searches everything about to be revealed for the winner's name, street, city, ZIP and phone, ignoring case, spacing and punctuation. If anything matches, publishing stops. A blocked proof is better than a leaked address.
+Before any proof is published, an automatic check searches everything about to be revealed for the winner's name, street, city, ZIP and phone, ignoring case, spacing and punctuation. If anything matches, publishing stops and the proof waits until it's fixed.
 
-## In the code
+## Source
 
-`lib/proofs/commitment.ts` (fingerprint) and `lib/proofs/pii-guard.ts` (leak guard) are built and tested, including leaks written in different formats. The address is deleted by the drop engine's last step, in `lib/engine/live.ts`.
+The fingerprint is in `lib/proofs/commitment.ts` and the leak guard is in `lib/proofs/pii-guard.ts`. The address is deleted in the drop engine's last step, in `lib/engine/live.ts`.

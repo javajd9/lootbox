@@ -10,7 +10,7 @@ import { explorerTx, loadLiveFacts, proofMismatch, type LiveFacts, type LiveReco
 import type { Drop } from "@/lib/data/types";
 import { CheckMark, CrossMark } from "@/components/brand/Logo";
 
-type Result = "pass" | "fail" | "demo" | "pending" | "checking";
+type Result = "pass" | "fail" | "pending" | "checking";
 
 const NONE: string[] = []; // no fingerprints read yet (one array, so the checks don't rerun every render)
 
@@ -27,7 +27,7 @@ function ResultIcon({ result }: { result: Result }) {
   if (result === "pass") return <CheckMark className="h-7 w-7" />;
   if (result === "fail") return <CrossMark className="h-7 w-7" />;
   return (
-    <span className="hud rounded-sm border border-line px-1.5 py-1 text-[9px]">{result === "demo" ? "Demo" : result === "checking" ? "…" : "Soon"}</span>
+    <span className="hud rounded-sm border border-line px-1.5 py-1 text-[9px]">{result === "checking" ? "…" : "Soon"}</span>
   );
 }
 
@@ -42,13 +42,10 @@ function zkCheck(p: ProofPackage | undefined, facts: LiveFacts | null): { result
 
 function runChecks(drop: Drop, packages: ProofPackage[], anchored: string[], live?: { record: LiveRecord; facts: LiveFacts | null }): Check[] {
   const find = (t: ProofPackage["type"]) => packages.filter((p) => p.type === t);
-  const payment = find("payment")[0];
   const order = find("order")[0];
   const delivered = find("tracking").find((p) => p.revealed.milestone === "delivered" || p.revealed.tag === "Delivered");
   const receipt = find("receipt")[0];
   const chain = verifyChain(packages, anchored);
-  // Demo packages carry placeholder attestations; live ones carry real Solana txs / Reclaim proofs.
-  const liveOrDemo = (ok: boolean): Result => (!ok ? "pending" : drop.demo ? "demo" : "pass");
 
   const receiptOk =
     !!receipt &&
@@ -78,10 +75,11 @@ function runChecks(drop: Drop, packages: ProofPackage[], anchored: string[], liv
     wentThrough = ordered.result === "pass" ? (r.status === "order_placed" && underCap ? "pass" : "fail") : ordered.result === "fail" ? "fail" : ordered.result;
     arrived = zkCheck(delivered, facts);
   } else {
-    paid = { result: liveOrDemo(!!payment), note: drop.demo ? "Demo: live drops link the real Solana transaction." : undefined };
-    ordered = { result: liveOrDemo(!!order), note: drop.demo ? "Demo: live drops verify a real Reclaim zkTLS proof here." : undefined };
-    wentThrough = liveOrDemo(!!order && !!payment && Number(order.revealed.totalUsd) <= Number(payment.revealed.usdc));
-    arrived = { result: liveOrDemo(!!delivered) };
+    // A drop the engine hasn't opened yet has nothing published to check.
+    paid = { result: "pending" };
+    ordered = { result: "pending" };
+    wentThrough = "pending";
+    arrived = { result: "pending" };
   }
 
   return [
@@ -166,7 +164,6 @@ export function ProofChecks({ drop, packages, anchoredHashes, live }: { drop: Dr
   const counted = checks.length - count("pending");
   const breakdown = [
     count("fail") && `${count("fail")} failed`,
-    count("demo") && `${count("demo")} demo data`,
     count("checking") && `${count("checking")} still checking`,
     count("pending") && `${count("pending")} not yet available`,
   ].filter(Boolean);

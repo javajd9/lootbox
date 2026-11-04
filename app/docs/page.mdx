@@ -6,31 +6,27 @@ export const metadata = { title: "Overview" };
 
 # How LOOTBOX works
 
-$LOOT trading fees fund real prizes. Holding $LOOT gets you tickets. When a prize pool fills, one ticket is drawn on-chain, the prize is bought and shipped automatically, and every step is proven publicly without revealing anything private about the winner.
+$LOOT trading fees pay for real prizes, and holding $LOOT gets you tickets. When a prize pool fills, one ticket is drawn on-chain, the prize is bought and shipped automatically, and each step gets a public proof. None of those proofs say who the winner is or where they live.
 
-These docs explain exactly how, and show you how to check it yourself.
-
-## The 60-second version
+## In short
 
 <Flow
   steps={[
     ["Hold", `Every ${RULES.tokensPerTicket.toLocaleString("en-US")} $LOOT you hold is one ticket, based on your average balance across random snapshots.`],
     ["Fill", "Every $LOOT trade pays creator fees into a public treasury. Each drop has a prize pool goal."],
-    ["Draw", "The second the pool fills, the ticket list is locked on Solana and verifiable randomness picks one ticket."],
-    ["Check", "The prize is bought and shipped automatically. Payment, order, delivery and receipt are each proven."],
+    ["Draw", "Once the pool fills, the ticket list is locked on Solana and verifiable randomness picks one ticket."],
+    ["Check", "The prize is bought and shipped automatically. Payment, order, delivery and receipt each have a proof."],
   ]}
 />
 
-## What makes it different
+## Fairness and privacy
 
-- **Nobody picks the winner.** The ticket list is locked on-chain before the randomness exists, and the randomness comes from ORAO VRF, not from us.
-- **Nothing private is published.** The winner's name, address, phone and email never appear anywhere public, only a fingerprint the winner alone can check. LOOTBOX keeps the shipping address privately until the prize arrives, then deletes it.
-- **Steps are proven, not posted.** Screenshots can be faked. LOOTBOX publishes cryptographic proofs that come from the source (Solana, the order system and its carrier tracking, the winner's wallet).
-- **You can check it all yourself.** The proof page re-runs every check in your own browser. You never have to take our word for it.
+The ticket list is locked on Solana before any randomness exists, and the randomness comes from ORAO VRF. LOOTBOX doesn't pick the winner and has no way to.
 
-## Two kinds of pages
+The winner's name, address, phone number and email are never published. What does get published is a fingerprint of the address that only the winner can check. LOOTBOX keeps the shipping address privately until the prize arrives, then deletes it.
 
-| Pages | For | What's in them |
-|---|---|---|
-| **Untagged** | Holders and anyone curious | The rules, in plain English: tickets, the pool, the draw, claiming, privacy, the proofs |
-| **Tagged Verify** | Developers, skeptics, anyone who wants to check | Addresses, proof formats, step-by-step verification, how to reproduce a draw |
+Each step's evidence comes from where it happened: Solana, the order service and its carrier tracking, and the winner's own wallet. The proof page re-runs every check in your browser.
+
+## Finding your way around
+
+Pages tagged **Verify** are for developers and anyone who wants the details: addresses, proof formats, step-by-step verification and how to reproduce a draw. The other pages cover the rules: tickets, the pool, the draw, claiming, privacy and the proofs.

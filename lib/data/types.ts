@@ -14,9 +14,7 @@ export interface PrizeItem {
 export interface Drop {
   id: string;
   title: string;
-  tagline: string;
   status: DropStatus;
-  demo: boolean;
   goalUsd: number;
   fundedUsd: number;
   items: PrizeItem[];

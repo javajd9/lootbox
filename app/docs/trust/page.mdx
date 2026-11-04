@@ -4,16 +4,16 @@ export const metadata = { title: "What you're trusting" };
 
 # What you're trusting
 
-No system is trustless all the way down. Here's exactly what LOOTBOX's proofs cover, and what they don't.
+Some of LOOTBOX can be checked by anyone, and some of it relies on LOOTBOX or an outside service doing its job. This page lists both.
 
-## You don't have to trust LOOTBOX for
+## What you can check without trusting LOOTBOX
 
-- **Seeing the money.** Every fee into the treasury and every payment out of it is on Solana.
-- **The draw.** The ticket list is locked on-chain before the randomness exists, and anyone can re-run the math.
-- **The purchase.** The order proof comes from the order service's own server, not from us, and can't be edited.
-- **The proof history.** Every proof's fingerprint is on Solana. Nothing can be quietly changed afterward.
+- Every fee into the treasury and every payment out of it is on Solana.
+- The ticket list is locked on-chain before the randomness exists, and anyone can re-run the draw.
+- The order proof comes from the order service's own server, and it can't be edited.
+- Every proof's fingerprint is on Solana, so nothing can be changed quietly afterward.
 
-## You do trust
+## What you do trust
 
 | Who | For what | Why it's reasonable |
 |---|---|---|
@@ -22,15 +22,15 @@ No system is trustless all the way down. Here's exactly what LOOTBOX's proofs co
 | **ORAO VRF** | Producing randomness nobody can predict or choose | Its randomness comes with a proof that's checked on-chain |
 | **Jupiter** | Swapping the pool's SOL to USDC at a fair price | The swap is a public transaction, and it fails rather than cost more than 0.5% over its quote |
 | **Shopify** | Collecting the winner's address at the $0 checkout | A standard store checkout. It sends the address to LOOTBOX's server and nowhere public |
-| **Zinc** | Reporting the Amazon order truthfully | An independent order service. It has no stake in who wins |
-| **The carrier, through Zinc** | Reporting delivery truthfully | Zinc follows the carrier's tracking. Its record is proven with zkTLS |
-| **Reclaim Protocol's witnesses** | Not colluding to fake a zkTLS proof | Independent operators. A fake would need them to collude |
+| **Zinc** | Reporting the Amazon order truthfully | An independent order service with no stake in who wins |
+| **The carrier, through Zinc** | Reporting delivery truthfully | Zinc follows the carrier's tracking, and its record is proven with zkTLS |
+| **Reclaim Protocol's witnesses** | Not colluding to fake a zkTLS proof | Independent operators. A fake would need several of them to collude |
 
 ## What the proofs can't show
 
-- **That "Delivered" means the winner has it.** Carriers sometimes get it wrong. That's why the last step is the winner's own signature.
-- **That a winner isn't connected to the team.** Team and treasury wallets are published and excluded. We can't prove nobody on the team owns another wallet. But the draw is random, so any wallet only wins as often as its tickets allow, and it can't be steered.
-- **That nobody at LOOTBOX read the address.** It's kept privately so the prize can be shipped. The proofs show it was never published, not that it was never seen.
-- **What happens after delivery.** A winner can sell, keep or gift their prize.
+- That "Delivered" means the winner actually has the prize. Carriers make mistakes, which is why the last step is the winner's own signature.
+- That a winner has no connection to the team. Team and treasury wallets are published and excluded, but we can't prove nobody on the team owns another wallet. The draw is random either way, so any wallet wins only as often as its tickets allow.
+- That nobody at LOOTBOX saw the address. It's kept privately so the prize can ship. The proofs show it was never published, not that it was never seen.
+- Anything after delivery. A winner can keep, sell or give away the prize.
 
-If you find a gap we haven't listed, tell us. It belongs on this page.
+If you find a gap that isn't listed here, tell us and we'll add it.

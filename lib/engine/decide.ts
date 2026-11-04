@@ -36,7 +36,7 @@ export function decide(state: EngineState, now: Date): Step[] {
     }
     switch (d.stage) {
       case "upcoming":
-        // First in line: every drop before it has been drawn, and its launch time (if any) has come.
+        // First in line: every drop before it has been drawn, and its opening time (if any) has come.
         if (state.drops.slice(0, i).every((b) => DRAWN.has(b.stage)) && t >= (d.opensAt ? Date.parse(d.opensAt) : 0)) {
           add(d, { type: "open" });
         }

@@ -4,34 +4,36 @@ export const metadata = { title: "How the winner is picked" };
 
 # How the winner is picked
 
-The draw starts the moment a prize pool fills. It takes four steps, and the order is what makes it fair.
+The draw starts once a prize pool fills. It happens in four steps, and their order is what keeps it fair.
 
 <Flow
   steps={[
-    ["Lock", "The final ticket list is fingerprinted (SHA-256) and the fingerprint is posted on Solana. The list can no longer change."],
+    ["Lock", "The final ticket list is fingerprinted (SHA-256) and the fingerprint is posted on Solana. From then on the list can't change."],
     ["Request", "LOOTBOX asks ORAO VRF, an independent randomness service on Solana, for a random number."],
-    ["Pick", "That number is turned into one ticket number, using public math with no bias."],
-    ["Reveal", "The winning ticket rolls on the live page. The wallet holding it wins."],
+    ["Pick", "That number is turned into one ticket number with public, unbiased math."],
+    ["Reveal", "The winning ticket rolls on the live page, and the wallet holding it wins."],
   ]}
 />
 
 ## Why it can't be rigged
 
-- **The list is locked before the randomness exists.** Nobody can add, remove or move tickets after seeing the result, because the list's fingerprint is already on-chain.
-- **We can't choose or predict the randomness.** ORAO VRF produces it with a cryptographic proof that it wasn't tampered with, and anyone can check that proof on-chain.
-- **The math is public and deterministic.** The same list and the same random number always give the same winner. Anyone can [reproduce a draw](/docs/reproduce).
-- **The animation is only a reveal.** The ticket rolling on the live page shows a result that's already on-chain. It doesn't pick anything.
+The ticket list's fingerprint is on Solana before the randomness is requested. Adding, removing or moving a ticket after that would no longer match the fingerprint.
+
+LOOTBOX can't choose or predict the random number. ORAO VRF produces it with a cryptographic proof that it wasn't tampered with, and that proof can be checked on-chain.
+
+The math that turns the number into a ticket is public and deterministic, so the same list and the same number always give the same winner. You can [reproduce a draw](/docs/reproduce) yourself.
+
+The rolling ticket on the live page only reveals a result that's already on-chain. It doesn't pick anything.
 
 ## How a random number becomes a ticket
 
 1. Tickets are numbered in order of wallet address. If the first wallet holds 40 tickets, it owns #1–#40, the next wallet starts at #41, and so on.
 2. ORAO VRF returns 64 random bytes, read as one very large number.
-3. That number is mapped onto the ticket range with **rejection sampling**: if it falls in the tiny leftover zone that would favor low ticket numbers, it's re-hashed and tried again. Every ticket gets exactly the same chance.
-4. The ticket number it lands on belongs to exactly one wallet. That wallet wins.
+3. That number is mapped onto the ticket range with **rejection sampling**. If it lands in the small leftover zone that would favor low ticket numbers, it's re-hashed and tried again, so every ticket has exactly the same chance.
+4. The resulting ticket number belongs to exactly one wallet, and that wallet wins.
 
 ## If something goes wrong
 
-- **The randomness request fails.** It's requested again. The ticket list is already locked, so a retry can't change who's in the draw.
-- **The winner doesn't claim.**
+If the randomness request fails, it's sent again. The ticket list is already locked, so a retry can't change who's in the draw.
 
 <Rule rule="unclaimed" />

@@ -16,7 +16,7 @@ const FIELDS = [
 
 type Form = Record<(typeof FIELDS)[number][0], string> & { salt: string };
 
-export function WinnerAddressCheck({ commitment, demoHint }: { commitment: string; demoHint?: Partial<Form> }) {
+export function WinnerAddressCheck({ commitment }: { commitment: string }) {
   const [form, setForm] = useState<Form>({ name: "", line1: "", line2: "", city: "", state: "", zip: "", salt: "" });
   const [result, setResult] = useState<boolean | null>(null);
 
@@ -40,11 +40,6 @@ export function WinnerAddressCheck({ commitment, demoHint }: { commitment: strin
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button onClick={check} className="btn-loot">Check my address</button>
-        {demoHint && (
-          <button onClick={() => { setForm({ ...form, ...demoHint }); setResult(null); }} className="btn-ghost text-sm">
-            Fill demo winner details
-          </button>
-        )}
         {result !== null && (
           <span className={result ? "text-ok" : "text-bad"}>
             {result ? "✓ Match: the prize was shipped to this address." : "✕ No match. Check for typos and the secret code."}

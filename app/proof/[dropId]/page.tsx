@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { ProofChecks } from "@/components/ProofChecks";
 import { WinnerAddressCheck } from "@/components/WinnerAddressCheck";
 import { HudSection } from "@/components/brand/Hud";
-import { DEMO_ADDRESS, DEMO_SALT, getDropProofs } from "@/lib/data/mock";
+import { getDropProofs } from "@/lib/data/drops";
 import { mono } from "@/lib/fonts";
 import { liveDropProofs } from "@/lib/proofs/public";
 import "../../legacy.css";
@@ -12,14 +12,13 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export default async function ProofPage({ params }: { params: { dropId: string } }) {
-  // DROP-000 is the demo rehearsal; every other drop the engine has opened is read live.
-  const real =
-    params.dropId === "DROP-000" || !/^[A-Z0-9-]{1,32}$/.test(params.dropId)
-      ? null
-      : await liveDropProofs(params.dropId).catch((err) => {
-          console.error("proof page", err);
-          return null;
-        });
+  // Every drop the engine has opened is read live; one it hasn't opened yet shows an empty page.
+  const real = !/^[A-Z0-9-]{1,32}$/.test(params.dropId)
+    ? null
+    : await liveDropProofs(params.dropId).catch((err) => {
+        console.error("proof page", err);
+        return null;
+      });
   const data = real ?? getDropProofs(params.dropId);
   if (!data) notFound();
   const { drop, packages } = data;
@@ -31,18 +30,6 @@ export default async function ProofPage({ params }: { params: { dropId: string }
         <header>
           <p className="eyebrow">{drop.id} · proof of loot</p>
           <h1 className="display mt-3 text-5xl sm:text-7xl">{drop.title}</h1>
-          {drop.demo && (
-            <p className="mt-6 max-w-3xl border-l-2 border-loot pl-4 text-sm text-cream/70">
-              Demo with sample data. The chain, signature and address checks below are real. Payment and zkTLS checks show
-              DEMO until a live drop provides the real Solana transactions and Reclaim proofs.
-            </p>
-          )}
-          {live?.cluster === "devnet" && (
-            <p className="mt-6 max-w-3xl border-l-2 border-loot pl-4 text-sm text-cream/70">
-              Test drop on Solana&apos;s devnet. Its prize is Zinc&apos;s sandbox test product, so nothing real is bought or shipped,
-              but every check below runs against the real records.
-            </p>
-          )}
           {drop.winnerWallet && (
             <p className="hud mt-6 break-all">
               Winner · <span className="text-cream">{drop.winnerWallet}</span>
@@ -53,10 +40,7 @@ export default async function ProofPage({ params }: { params: { dropId: string }
         <ProofChecks drop={drop} packages={packages} anchoredHashes={"anchoredHashes" in data ? data.anchoredHashes : []} live={live} />
 
         {drop.addressCommitment && (
-          <WinnerAddressCheck
-            commitment={drop.addressCommitment}
-            demoHint={drop.demo ? { ...DEMO_ADDRESS, line2: "", salt: DEMO_SALT } : undefined}
-          />
+          <WinnerAddressCheck commitment={drop.addressCommitment} />
         )}
 
         {live && (

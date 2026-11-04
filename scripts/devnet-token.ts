@@ -1,5 +1,5 @@
 // Creates "tLOOT" on devnet: a stand-in for $LOOT (same 6 decimals) held by a handful of wallets,
-// so snapshots can be tested against a real token before launch. Run once; it remembers the mint
+// so snapshots run against a real token on devnet. Run once; it remembers the mint
 // in .keys/devnet-token.json.
 //
 //   npm run devnet:token

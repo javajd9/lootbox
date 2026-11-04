@@ -1,4 +1,4 @@
-// Day-1 gate #1: does Zinc's order record contain what our proofs need?
+// Zinc check: does Zinc's order record contain what our proofs need?
 // Prints field NAMES and safe values only - never the shipping address.
 //
 // Usage: put ZINC_API_KEY in .env, then `npm run gate:zinc`.

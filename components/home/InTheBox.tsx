@@ -10,7 +10,7 @@ export function InTheBox({ drop }: { drop: Drop }) {
   return (
     <HudSection id="drop" index="02" label="In the box">
       <div className="text-center">
-        <p className="eyebrow">{drop.title} — {drop.items.length} items</p>
+        <p className="eyebrow">{drop.title} · {drop.items.length} items</p>
         <h2 className="display mt-4 text-5xl sm:text-7xl">In the box</h2>
       </div>
       <ul className="mx-auto mt-16 grid max-w-4xl grid-cols-1 gap-12 sm:grid-cols-3">
@@ -44,7 +44,7 @@ export function InTheBox({ drop }: { drop: Drop }) {
       <p className="mt-16 text-center text-sm text-mute">
         {locked
           ? "These exact products are locked, each with its price cap, and the order is checked against them automatically."
-          : "Exact products are locked before launch and the order is checked against them automatically."}
+          : "Exact products are locked before the drop opens, and the order is checked against them automatically."}
       </p>
     </HudSection>
   );

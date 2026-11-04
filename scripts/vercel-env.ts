@@ -50,4 +50,4 @@ fs.mkdirSync(".keys", { recursive: true });
 fs.writeFileSync(".keys/vercel.env", lines.join("\n") + "\n");
 console.log(`Wrote .keys/vercel.env with ${lines.length} keys:\n  ${NEEDED.filter((k) => env.get(k)).join("\n  ")}`);
 const missing = NEEDED.filter((k) => !env.get(k));
-if (missing.length) console.log(`Blank in .env, so left out (fine for now): ${missing.join(", ")}`);
+if (missing.length) console.log(`Blank in .env, so left out: ${missing.join(", ")}`);

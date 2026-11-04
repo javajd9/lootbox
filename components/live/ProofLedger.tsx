@@ -12,11 +12,7 @@ import { PROOF_STEPS, dropCode, fmtDay, isFinished, isOnTheWay, nextStep, status
 import { AnimatedNumber } from "./AnimatedNumber";
 import { useLive } from "./LiveProvider";
 
-const proofHref = (d: PastDrop) => `/proof/${d.proofId ?? d.id}`;
-
-function SampleChip() {
-  return <span className="hud rounded-sm border border-line px-1.5 py-0.5 text-[9px]">Sample</span>;
-}
+const proofHref = (d: PastDrop) => `/proof/${d.id}`;
 
 // Funded → Drawn → … → Received. Vertical on phones, one horizontal track on wider screens.
 function ProofTracker({ done, activeKey, activeNote }: { done: PastDrop["done"]; activeKey?: StepKey; activeNote?: string }) {
@@ -146,7 +142,6 @@ function OnTheWay({ prizes }: { prizes: PastDrop[] }) {
                 <span className="block truncate font-bold">{d.title}</span>
                 <span className="mt-0.5 flex items-center gap-2">
                   <span className="hud">{usd(d.valueUsd)}</span>
-                  {d.sample && <SampleChip />}
                 </span>
               </span>
               <span className="hidden font-mono text-sm text-cream/80 md:block">{shortWallet(d.wallet)}</span>
@@ -203,7 +198,6 @@ function Completed({ drops }: { drops: PastDrop[] }) {
             <span className="block truncate font-bold">{d.title}</span>
             <span className="mt-0.5 flex items-center gap-2">
               <span className="hud">{usd(d.valueUsd)}</span>
-              {d.sample && <SampleChip />}
             </span>
             <span className="mt-1 block font-mono text-xs text-cream/60 md:hidden">
               {shortWallet(d.wallet)} · #{d.ticket.toLocaleString("en-US")}

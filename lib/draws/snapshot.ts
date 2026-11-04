@@ -31,7 +31,7 @@ export interface WeightRange extends WeightEntry {
 
 const byWallet = (a: { wallet: string }, b: { wallet: string }) => (a.wallet < b.wallet ? -1 : a.wallet > b.wallet ? 1 : 0);
 
-// excluded: bonding curve, AMM pool, team, dev and treasury wallets (published before launch).
+// excluded: bonding curve, AMM pool, team, dev and treasury wallets (listed on /docs/addresses).
 export function buildSnapshot(
   dropId: string,
   slot: number,

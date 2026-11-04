@@ -8,7 +8,7 @@ export interface DropRecord {
   id: string;
   goalCents: number;
   stage: Stage;
-  opensAt?: string; // launch time, for the first drop; later drops open as soon as the one before is drawn
+  opensAt?: string; // when the first drop opens; later drops open as soon as the one before is drawn
   openedAt?: string;
   fundedAt?: string;
   snapshotsTaken: number;

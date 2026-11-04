@@ -4,7 +4,7 @@ import { TickerTape } from "@/components/live/TickerTape";
 import { YourTickets } from "@/components/live/TicketCheck";
 import { ProofLedger } from "@/components/live/ProofLedger";
 import { InTheBox } from "@/components/home/InTheBox";
-import { getDemoHistory, getDropQueue } from "@/lib/data/mock";
+import { getDropQueue } from "@/lib/data/drops";
 import type { StageDrop } from "@/lib/live/useLiveDrop";
 
 // The homepage: the live raffle ticket, then the record of every drop, winner and proof.
@@ -17,7 +17,6 @@ export default function Home() {
       <LiveProvider
         initial={{ phase: "filling", upcoming: true, drop: toStage(current), fundedUsd: current.fundedUsd, tickets: 0, watching: 0, trades: [], history: [] }}
         upNext={rest.map(toStage)}
-        demoHistory={getDemoHistory()}
       >
         <HeroTicket prizes={Object.fromEntries([current, ...rest].map((d) => [d.id, d.items]))} />
         <TickerTape />

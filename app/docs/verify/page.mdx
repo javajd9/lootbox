@@ -8,13 +8,13 @@ export const receipt = receiptMessage({ dropId: "DROP-001", amazonOrderId: "112-
 
 # Verify it yourself
 
-The proof page runs most of these checks for you in your browser. This page explains what each one does, so you can run them by hand with your own tools.
+The proof page runs most of these checks in your browser. This page explains each one so you can also run them by hand with your own tools.
 
-## The quick way
+## On the proof page
 
-Open a drop's proof page and press **Verify everything**. It checks the Paid transaction, the order, the delivery, the winner's receipt and the whole proof chain on your device, against the raw proof data and Solana itself, not against a "verified: true" flag from our server. Try **Try tampering** on the [demo proof page](/proof/DROP-000) to watch a check fail when one number changes.
+Open a drop's proof page and press **Verify everything**. Your browser checks the Paid transaction, the order, the delivery, the winner's receipt and the whole proof chain against the raw proof data and Solana itself. Nothing relies on a "verified" flag from our server. Once a drop has published proofs, **Try tampering** changes one number so you can watch a check fail.
 
-The fee inflows and the draw are checked by hand, below. Everything you need is under **The raw data** on each drop's proof page.
+The fee inflows and the draw are checked by hand, as described below. Everything you need is under **The raw data** on each drop's proof page.
 
 ## By hand, step by step
 
@@ -53,6 +53,6 @@ The `commitment` in the receipt is the address fingerprint from the **Claimed** 
 
 If you won, enter your address and your secret code on the proof page. The fingerprint is recomputed in your browser and compared with the published one. See [Privacy](/docs/privacy) for the exact format.
 
-## What runs today
+## Which steps the proof page runs
 
-On every live drop's proof page, your browser runs steps 1, 2 (the Paid transaction), 4, 5 and 6. It reads each fingerprint from Solana's public RPC, checks each zkTLS proof's attestor signatures with Reclaim's SDK, and checks the receipt signature against the winning wallet. The fee inflows (step 2) and the draw (step 3) you check by hand from Solscan and the drop's **Draw data**. The [demo drop](/proof/DROP-000) runs the chain, receipt and address checks on sample data.
+On each drop's proof page, your browser runs steps 1, 2 (the Paid transaction), 4, 5 and 6. It reads each fingerprint from Solana's public RPC, checks each zkTLS proof's attestor signatures with Reclaim's SDK, and checks the receipt signature against the winning wallet. The fee inflows (step 2) and the draw (step 3) are checked by hand, from Solscan and the drop's **Draw data**.
