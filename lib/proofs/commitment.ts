@@ -11,6 +11,9 @@ export interface ShippingAddress {
   city: string;
   state: string;
   zip: string;
+  // Kept with the private address for the carrier; never hashed or published.
+  phone?: string;
+  country?: string; // ISO alpha-2
 }
 
 const DOMAIN = "LOOTBOX-ADDR-v1";

@@ -66,6 +66,9 @@ export interface Effects {
   lockTickets(drop: DropRecord): Promise<{ hash: string; totalTickets: number }>;
   requestRandomness(drop: DropRecord, round: number): Promise<void>;
   readRandomness(drop: DropRecord, round: number): Promise<{ winner: string; ticket: number } | null>;
-  placeOrder(drop: DropRecord): Promise<{ ok: true } | { ok: false; reason: string }>;
+  placeOrder(drop: DropRecord): Promise<OrderResult>; // one step of buying the prize; called each tick until it's done
   alert(message: string): Promise<void>;
 }
+
+// Buying the prize: done (placed, proven, fingerprinted), stopped (needs a human), or still under way.
+export type OrderResult = { ok: true } | { ok: false; reason: string } | { waiting: string };

@@ -4,22 +4,37 @@ import { CLUSTER, type Cluster } from "@/lib/chain/solana";
 import type { EngineStore } from "./run";
 import type { DropRecord, EngineState } from "./types";
 
+// One thing the prize is made of, as it's bought. `maxPriceCents` is the most the engine will ever
+// pay for one, all in (its price plus its share of tax and shipping): the order's spending cap is
+// the sum of these, and Zinc refuses any order that would cost more.
+export interface PrizeItem {
+  name: string;
+  asin?: string; // Amazon product ID; bought from https://www.amazon.com/dp/<asin>
+  url?: string; // or any product page Zinc can buy from (e.g. its sandbox test products)
+  quantity: number;
+  maxPriceCents: number;
+}
+
 export interface DropConfig {
   id: string;
   number: number;
   title: string;
   goalCents: number;
   opensAt?: string; // the first drop only
+  prize?: PrizeItem[]; // must be set before the drop is claimed, or the order waits on a hold
 }
+
+// Zinc's sandbox product that always succeeds. Test keys (zn_test_...) never spend real money.
+const TEST_PRODUCT: PrizeItem = { name: "Zinc test product", url: "https://zinc.com/shop/products/test-success", quantity: 1, maxPriceCents: 500 };
 
 const QUEUES: Record<Cluster, DropConfig[]> = {
   // Small goals, so test fees can fill them.
   devnet: [
-    { id: "DEV-001", number: 1, title: "Devnet test drop", goalCents: 1_000, opensAt: "2026-10-31T00:00:00Z" },
-    { id: "DEV-002", number: 2, title: "Devnet test drop", goalCents: 1_000 },
-    { id: "DEV-003", number: 3, title: "Devnet test drop", goalCents: 1_000 },
+    { id: "DEV-001", number: 1, title: "Devnet test drop", goalCents: 1_000, opensAt: "2026-10-31T00:00:00Z", prize: [TEST_PRODUCT] },
+    { id: "DEV-002", number: 2, title: "Devnet test drop", goalCents: 1_000, prize: [TEST_PRODUCT] },
+    { id: "DEV-003", number: 3, title: "Devnet test drop", goalCents: 1_000, prize: [TEST_PRODUCT] },
   ],
-  // Stays shut until LAUNCH_AT is set.
+  // Stays shut until LAUNCH_AT is set. Its ASINs and caps get filled in before launch.
   "mainnet-beta": [{ id: "DROP-001", number: 1, title: "GTA VI Bundle", goalCents: 200_000, opensAt: process.env.LAUNCH_AT || "2099-01-01T00:00:00Z" }],
 };
 

@@ -4,11 +4,12 @@
 import { RULES } from "@/lib/config/rules";
 import { CLAIM_DAYS } from "@/lib/live/types";
 import { nextSnapshotAt } from "./schedule";
-import type { DropRecord, Effect, EngineState, Stage, Step } from "./types";
+import type { DropRecord, Effect, EngineState, OrderResult, Stage, Step } from "./types";
 
 const DAY = 864e5;
 const RECEIPT_WAIT_DAYS = 14; // after delivery, how long to wait for the winner's signed receipt
 const SLOW_RANDOMNESS_MS = 10 * 60_000;
+const SLOW_ORDER_MS = DAY; // Zinc usually places an order within hours
 
 // The winner is known.
 const DRAWN = new Set<Stage>(["claiming", "fulfilling", "delivered", "complete"]);
@@ -56,8 +57,10 @@ export function decide(state: EngineState, now: Date): Step[] {
         }
         break;
       case "claiming":
-        if (d.claimedAt) add(d, { type: "placeOrder" });
-        else if (t >= at(d.claimDeadline)) add(d, { type: "redraw", round: d.round + 1 });
+        if (d.claimedAt) {
+          add(d, { type: "placeOrder" });
+          if (t - at(d.claimedAt) > SLOW_ORDER_MS) add(d, alert(`slow-order:${d.id}`, `${d.id}: the prize was claimed over a day ago and the order still isn't placed.`));
+        } else if (t >= at(d.claimDeadline)) add(d, { type: "redraw", round: d.round + 1 });
         break;
       case "fulfilling":
         if (d.deliveredAt) add(d, { type: "markDelivered" });
@@ -131,7 +134,8 @@ export function apply(d: DropRecord, effect: Effect, result: unknown, now: Date,
         claimDeadline: undefined,
       };
     case "placeOrder": {
-      const r = result as { ok: true } | { ok: false; reason: string };
+      const r = result as OrderResult;
+      if ("waiting" in r) return d; // Zinc is still working on it; look again next tick
       return r.ok ? { ...d, stage: "fulfilling", orderedAt: iso } : { ...d, hold: r.reason };
     }
     case "markDelivered":

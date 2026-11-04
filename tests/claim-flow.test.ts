@@ -101,7 +101,10 @@ describe("Shopify order", () => {
   });
 
   it("reads the shipping address", () => {
-    expect(shippingAddressOf(order)).toEqual({ name: "Ada Lovelace", line1: "12 Main St.", line2: "Apt #4", city: "Austin", state: "TX", zip: "78701-1234" });
+    expect(shippingAddressOf(order)).toEqual({ name: "Ada Lovelace", line1: "12 Main St.", line2: "Apt #4", city: "Austin", state: "TX", zip: "78701-1234", country: "US" });
+    // The phone (Zinc needs one for the carrier) comes from the address, or else the order.
+    expect(shippingAddressOf({ ...order, phone: "+15125550100" })?.phone).toBe("+15125550100");
+    expect(shippingAddressOf({ ...order, shipping_address: { ...order.shipping_address, phone: "512-555-0199" }, phone: "+15125550100" })?.phone).toBe("512-555-0199");
     expect(shippingAddressOf({ id: 1, shipping_address: null })).toBeNull();
     expect(shippingAddressOf({ id: 1, shipping_address: { address1: "", city: "X", zip: "1" } })).toBeNull();
   });

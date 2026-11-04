@@ -36,7 +36,9 @@ export interface ShopifyOrder {
     province_code?: string | null;
     zip?: string | null;
     country_code?: string | null;
+    phone?: string | null;
   } | null;
+  phone?: string | null;
 }
 
 export function claimTokenOf(order: ShopifyOrder): string | null {
@@ -54,6 +56,9 @@ export function shippingAddressOf(order: ShopifyOrder): ShippingAddress | null {
     city: a.city,
     state: a.province_code || a.province || "",
     zip: a.zip,
+    // Zinc needs a phone number for the carrier; it stays private like the rest.
+    phone: a.phone || order.phone || undefined,
+    country: a.country_code || undefined,
   };
 }
 
