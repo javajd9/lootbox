@@ -61,7 +61,7 @@ export async function loadLiveFacts(dropId: string, packages: ProofPackage[], li
 }
 
 // The fingerprint kind each package type is posted under.
-const KINDS: Partial<Record<ProofPackage["type"], string[]>> = { order: ["ordered"], tracking: ["shipped", "delivered"] };
+const KINDS: Partial<Record<ProofPackage["type"], string[]>> = { order: ["ordered"], tracking: ["shipped", "delivered"], receipt: ["received"] };
 
 async function attestorsCheck(packages: ProofPackage[]): Promise<Record<number, boolean>> {
   const zk = packages.filter((p) => p.type === "order" || p.type === "tracking");

@@ -17,6 +17,7 @@ import { deliveryStep } from "@/lib/orders/delivery";
 import { liveDeliveryDeps, liveOrderDeps } from "@/lib/orders/live";
 import { orderStep } from "@/lib/orders/order";
 import { withClaims } from "./claims";
+import { withReceipts, type FinishedReceipt } from "./receipts";
 import { dropConfig, initialState, withQueuedDrops } from "./drops";
 import type { EngineStore } from "./run";
 import { supabaseStore } from "./supabase-store";
@@ -192,8 +193,14 @@ export function liveEffects(): Effects {
   };
 }
 
-// The engine's store, with newly queued drops added, finished claims read in (see ./claims), and
-// each drop's stage mirrored to the public drops table whenever it changes.
+async function finishedReceipts(dropIds: string[]): Promise<FinishedReceipt[]> {
+  if (!dropIds.length) return [];
+  const { data } = check(await serverDb().from("receipts").select("drop_id, wallet, created_at").in("drop_id", dropIds).not("memo_tx", "is", null), "load receipts");
+  return (data ?? []) as FinishedReceipt[];
+}
+
+// The engine's store, with newly queued drops added, finished claims and receipts read in (see
+// ./claims, ./receipts), and each drop's stage mirrored to the public drops table whenever it changes.
 export function liveStore(): EngineStore {
   const store = withQueuedDrops(supabaseStore(initialState()));
   const db = serverDb();
@@ -203,7 +210,8 @@ export function liveStore(): EngineStore {
     async load() {
       const loaded = await store.load();
       const waiting = loaded.drops.filter((d) => d.stage === "claiming" && !d.claimedAt).map((d) => d.id);
-      const state = withClaims(loaded, await claimStore.completed(waiting));
+      const delivered = loaded.drops.filter((d) => d.stage === "delivered" && !d.receivedAt).map((d) => d.id);
+      const state = withReceipts(withClaims(loaded, await claimStore.completed(waiting)), await finishedReceipts(delivered));
       stages = new Map(state.drops.map((d) => [d.id, d.stage]));
       return state;
     },

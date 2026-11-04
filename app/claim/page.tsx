@@ -139,6 +139,13 @@ export default function ClaimPage() {
           <p className="break-all font-mono text-xs">
             <span className="hud">Address as hashed</span> {claim.normalized}
           </p>
+          <p className="text-sm text-cream/70">
+            When it arrives,{" "}
+            <a className="underline" href={`/received?drop=${encodeURIComponent(claim.dropId)}`}>
+              confirm you received it
+            </a>{" "}
+            with the same wallet.
+          </p>
         </div>
       ) : token && claim ? (
         <div className="card space-y-4">
