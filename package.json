@@ -30,6 +30,8 @@
     "@next/mdx": "^14.2.35",
     "@noble/hashes": "^1.5.0",
     "@orao-network/solana-vrf": "^0.8.0",
+    "@reclaimprotocol/js-sdk": "5.8.3",
+    "@reclaimprotocol/zk-fetch": "1.1.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
     "@supabase/supabase-js": "^2.118.0",
@@ -42,8 +44,6 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "@reclaimprotocol/js-sdk": "latest",
-    "@reclaimprotocol/zk-fetch": "latest",
     "@types/mdx": "^2.0.13",
     "@types/node": "^20.16.0",
     "@types/pg": "^8.23.1",
