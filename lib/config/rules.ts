@@ -12,6 +12,7 @@ export const RULES = {
   claimDays: CLAIM_DAYS,
   claimSigningMinutes: NONCE_TTL_MS / 60_000,
   firstDropGoalUsd: 2000,
+  collectMinSol: 0.05, // creator fees are collected into the treasury once this much is waiting
 };
 
 // The drop rules in plain English, quoted word for word by the docs (<Rule rule="…" />).

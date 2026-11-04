@@ -2,9 +2,21 @@
 // homepage can use them without pulling in any server code.
 export type Cluster = "devnet" | "mainnet-beta";
 
+// One real trade's creator fee, in the pool.
+export interface LiveFee {
+  signature: string; // the trade's transaction
+  at: string;
+  side: "buy" | "sell";
+  trader: string;
+  feeUsd: number;
+  tradeUsd: number;
+}
+
 export interface LiveView {
   cluster: Cluster;
-  poolCents: number; // the treasury at the last tick's price
+  // The treasury plus the creator fees not collected yet, at the last tick's price, plus any
+  // trade's fee recorded since.
+  poolCents: number;
   drop: {
     id: string;
     number: number;
@@ -27,5 +39,6 @@ export interface LiveView {
     walletTickets: number | null; // how many tickets the winning wallet held
     drawnAt?: string;
   } | null;
+  fees?: LiveFee[]; // the latest trades, newest first
   updatedAt: string;
 }

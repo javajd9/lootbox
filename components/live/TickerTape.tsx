@@ -3,7 +3,7 @@
 // A thin, always-moving line of what's happening right now: fees landing, tickets in the box,
 // the latest winner, proofs on-chain. Carries the ticket's "live" feeling down the page.
 import { CheckMark } from "@/components/brand/Logo";
-import { dropNo, shortWallet } from "@/lib/live/format";
+import { dropNo, feeLabel, shortWallet } from "@/lib/live/format";
 import { dropCode, isOnTheWay } from "@/lib/live/types";
 import { useLive } from "./LiveProvider";
 
@@ -27,7 +27,16 @@ export function TickerTape() {
     );
   } else {
     items.push({ key: "d", text: `Drop ${dropNo(drop.number)} · ${phase === "filling" ? `${pct}% funded` : phase}`, gold: true });
-    for (const t of [...trades].reverse()) items.push({ key: `t${t.id}`, text: `+$${t.usd.toFixed(2)} fee in`, gold: true });
+    for (const t of [...trades].reverse()) {
+      const text = t.url ? (
+        <a href={t.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+          {feeLabel(t)}
+        </a>
+      ) : (
+        `+$${t.usd.toFixed(2)} fee in`
+      );
+      items.push({ key: `t${t.id}`, text, gold: true });
+    }
     items.push({ key: "k", text: `${tickets.toLocaleString()} tickets in the box` });
     if (latest) {
       items.push({

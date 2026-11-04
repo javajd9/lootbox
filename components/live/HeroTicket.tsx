@@ -9,8 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { RULES } from "@/lib/config/rules";
-import { dropNo, shortWallet, usd } from "@/lib/live/format";
-import { WINNER_HOLD_MS, type DrawResult } from "@/lib/live/useLiveDrop";
+import { coinPx, dropNo, feeLabel, shortWallet, usd } from "@/lib/live/format";
+import { WINNER_HOLD_MS, type DrawResult, type Trade } from "@/lib/live/useLiveDrop";
 import type { PrizeItem } from "@/lib/data/types";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { FillBox } from "./FillBox";
@@ -202,32 +202,39 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
   const innerRef = useRef<HTMLDivElement>(null);
   const scrolledAway = useOutOfView(cardRef);
 
-  // Every fee drops a coin into the box; a big one drops three and gets called out.
+  // Every fee drops a coin into the box, sized by the fee; a big one drops three and shakes the
+  // ticket. Live, each coin is one real trade, labelled with what it paid and links to it.
   const lastTrade = useRef(0);
-  const [coins, setCoins] = useState<{ id: number; x: number; big: boolean }[]>([]);
+  const [coins, setCoins] = useState<{ id: number; x: number; px: number }[]>([]);
   const [splash, setSplash] = useState(0);
-  const [whale, setWhale] = useState<{ id: number; usd: number } | null>(null);
+  const [label, setLabel] = useState<(Trade & { big: boolean }) | null>(null);
   useEffect(() => {
-    const t = trades.at(-1);
-    if (!t || t.id === lastTrade.current) return;
-    lastTrade.current = t.id;
+    const fresh = trades.filter((t) => t.id > lastTrade.current);
+    if (!fresh.length) return;
+    lastTrade.current = fresh[fresh.length - 1].id;
+    // Several trades in one poll land one after another.
+    fresh.forEach((t, i) => setTimeout(() => dropCoin(t), i * 260));
+  }, [trades]); // eslint-disable-line react-hooks/exhaustive-deps -- dropCoin only sets state
+
+  function dropCoin(t: Trade) {
     const big = t.usd >= WHALE_USD;
-    const born = Array.from({ length: big ? 3 : 1 }, (_, i) => ({ id: t.id * 10 + i, x: Math.round((Math.random() - 0.5) * 140), big }));
-    setCoins((c) => [...c.slice(-9), ...born]);
+    const px = coinPx(t.usd);
+    const born = Array.from({ length: big ? 3 : 1 }, (_, i) => ({ id: t.id * 10 + i, x: Math.round((Math.random() - 0.5) * 140), px }));
+    setCoins((c) => [...c.slice(-11), ...born]);
     const ids = new Set(born.map((b) => b.id));
     setTimeout(() => setSplash((s) => s + 1), 700);
     setTimeout(() => setCoins((c) => c.filter((x) => !ids.has(x.id))), 1100);
-    if (big) {
-      setWhale({ id: t.id, usd: t.usd });
-      setTimeout(() => setWhale((w) => (w?.id === t.id ? null : w)), 2500);
-      if (!reducedMotion()) {
-        innerRef.current?.animate(
-          [{ transform: "translate(0,0)" }, { transform: "translate(-5px,2px)" }, { transform: "translate(5px,-2px)" }, { transform: "translate(0,0)" }],
-          { duration: 380, easing: "ease-in-out" },
-        );
-      }
+    if (t.tradeUsd !== undefined || big) {
+      setLabel({ ...t, big });
+      setTimeout(() => setLabel((l) => (l?.id === t.id ? null : l)), 2500);
     }
-  }, [trades]);
+    if (big && !reducedMotion()) {
+      innerRef.current?.animate(
+        [{ transform: "translate(0,0)" }, { transform: "translate(-5px,2px)" }, { transform: "translate(5px,-2px)" }, { transform: "translate(0,0)" }],
+        { duration: 380, easing: "ease-in-out" },
+      );
+    }
+  }
 
   // Crossing 25 / 50 / 75 / 90% prints a word on the stub.
   const prevPct = useRef(pct);
@@ -298,9 +305,15 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                           </>
                         )}
                       </p>
-                      {whale && (
-                        <p key={whale.id} className="t-lead absolute -top-8 left-0 animate-float-off font-bold motion-reduce:animate-none">
-                          +{usd(whale.usd)} whale buy
+                      {label && (
+                        <p key={label.id} className={`t-lead absolute -top-8 left-0 animate-float-off font-bold motion-reduce:animate-none ${label.big ? "text-[1.3em]" : ""}`}>
+                          {label.url ? (
+                            <a href={label.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                              {feeLabel(label)}
+                            </a>
+                          ) : (
+                            <>+{usd(label.usd)} whale buy</>
+                          )}
                         </p>
                       )}
                       <p className="t-lead mt-5 max-w-[36ch] text-pretty text-ink/80">
@@ -387,8 +400,8 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                     {coins.map((c) => (
                       <span
                         key={c.id}
-                        className={`absolute left-1/2 top-[38%] -ml-2.5 animate-coin rounded-full bg-loot ring-[3px] ring-ink ${c.big ? "h-6 w-6" : "h-5 w-5"}`}
-                        style={{ "--x": `${c.x}px` } as React.CSSProperties}
+                        className="absolute left-1/2 top-[38%] animate-coin rounded-full bg-loot ring-[3px] ring-ink"
+                        style={{ "--x": `${c.x}px`, width: c.px, height: c.px, marginLeft: -c.px / 2 } as React.CSSProperties}
                       />
                     ))}
                   </div>

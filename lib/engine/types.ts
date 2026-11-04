@@ -35,12 +35,17 @@ export interface EngineState {
   // The pool filling now: the SOL in the treasury at today's price. Each prize is swapped out to
   // USDC the moment its pool fills, so whatever is left over is already the next drop's pool.
   treasuryCents: number;
+  // Creator fees pump.fun is still holding for the treasury (see lib/chain/pump). They count toward
+  // the pool, so it moves with every trade, and are collected into the treasury now and then.
+  uncollected?: { lamports: number; cents: number };
+  poolReadAt?: string; // when the treasury and the uncollected fees were last read
   sentAlerts: string[]; // so each alert goes out once
 }
 
 export type Effect =
   | { type: "open" }
   | { type: "snapshot" }
+  | { type: "collect"; lamports: number }
   | { type: "fund"; lockedCents: number }
   | { type: "lockTickets" }
   | { type: "requestRandomness"; round: number }
@@ -60,6 +65,10 @@ export interface Step {
 // between doing it and saving the result means it runs again), e.g. keyed by drop and round.
 export interface Effects {
   readTreasury(): Promise<number>; // USD cents of SOL in the treasury, at the current price
+  // Creator fees not yet in the treasury, and collecting them into it (with its fingerprint).
+  // Optional: without them nothing is waiting anywhere else.
+  readCreatorFees?(): Promise<{ lamports: number; cents: number }>;
+  collect?(drop: DropRecord, lamports: number): Promise<void>;
   open(drop: DropRecord): Promise<void>;
   snapshot(drop: DropRecord): Promise<{ hash: string; holders: number }>;
   fund(drop: DropRecord, lockedCents: number): Promise<void>; // swaps the prize's worth of SOL to USDC

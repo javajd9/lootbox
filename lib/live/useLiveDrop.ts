@@ -11,7 +11,10 @@ export type Phase = "filling" | "funded" | "drawing" | "winner";
 
 export interface Trade {
   id: number;
-  usd: number;
+  usd: number; // the fee into the pool
+  tradeUsd?: number; // live: the trade that paid it
+  side?: "buy" | "sell";
+  url?: string; // live: the trade's transaction
 }
 
 export interface DrawResult {
@@ -49,6 +52,7 @@ export interface LiveDrop {
   drawAt?: string; // live: when the draw starts, after the pause that follows the pool filling
   upcoming?: boolean; // the drop hasn't opened yet (before launch)
   revealedId?: string; // live: the drop whose draw has already played
+  seenFees?: string[]; // live: trades already shown (or there before the page loaded), by signature
   history: PastDrop[]; // newest first
 }
 

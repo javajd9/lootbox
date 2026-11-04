@@ -1,11 +1,11 @@
-// The treasury: where the pool collects, as SOL. The pool is its balance at today's price. The
-// moment a pool fills, the prize's worth moves to the prize wallet (on mainnet it will be swapped
-// to USDC on the way).
+// The treasury: where the pool collects, as SOL. The pool is its balance at today's price, plus
+// the creator fees pump.fun still holds for it (lib/treasury/fees). The moment a pool fills, the
+// prize's worth moves to the prize wallet: as SOL on devnet, swapped to USDC on mainnet (./swap).
 import { LAMPORTS_PER_SOL, SystemProgram, Transaction, type Connection, type Keypair, type PublicKey } from "@solana/web3.js";
 import { fingerprintMemo, memoInstruction, parseFingerprint } from "@/lib/chain/memo";
 import { sendAndConfirm } from "@/lib/chain/solana";
 
-const RESERVE_LAMPORTS = 890_880; // what an empty account must keep to stay open
+export const RESERVE_LAMPORTS = 890_880; // what an empty account must keep to stay open
 
 export async function treasuryCents(conn: Connection, treasury: PublicKey, priceUsd: number): Promise<number> {
   const lamports = Math.max(0, (await conn.getBalance(treasury)) - RESERVE_LAMPORTS);

@@ -1,6 +1,6 @@
 // The Solana connection and the ops wallet: the published wallet that signs every proof
 // fingerprint and every randomness request. Devnet (Solana's free test network) until launch.
-import { Connection, Keypair, clusterApiUrl, type Transaction } from "@solana/web3.js";
+import { Connection, Keypair, TransactionMessage, VersionedTransaction, clusterApiUrl, type AddressLookupTableAccount, type Transaction, type TransactionInstruction } from "@solana/web3.js";
 import bs58 from "bs58";
 
 export type Cluster = "devnet" | "mainnet-beta";
@@ -26,7 +26,20 @@ export async function sendAndConfirm(conn: Connection, tx: Transaction, signers:
   tx.recentBlockhash = blockhash;
   tx.feePayer = signers[0].publicKey;
   tx.sign(...signers);
-  const sig = await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 });
+  return confirm(conn, await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 }), lastValidBlockHeight);
+}
+
+// The same, as a version 0 transaction: for instructions that need address lookup tables (a
+// Jupiter swap). The first signer pays.
+export async function sendAndConfirmV0(conn: Connection, instructions: TransactionInstruction[], signers: Keypair[], lookupTables: AddressLookupTableAccount[] = []): Promise<string> {
+  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
+  const message = new TransactionMessage({ payerKey: signers[0].publicKey, recentBlockhash: blockhash, instructions }).compileToV0Message(lookupTables);
+  const tx = new VersionedTransaction(message);
+  tx.sign(signers);
+  return confirm(conn, await conn.sendRawTransaction(tx.serialize(), { maxRetries: 5 }), lastValidBlockHeight);
+}
+
+async function confirm(conn: Connection, sig: string, lastValidBlockHeight: number): Promise<string> {
   for (;;) {
     const status = (await conn.getSignatureStatuses([sig])).value[0];
     if (status?.err) throw new Error(`transaction ${sig} failed: ${JSON.stringify(status.err)}`);
