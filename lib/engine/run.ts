@@ -25,14 +25,22 @@ export async function tick(store: EngineStore, effects: Effects, now = new Date(
     const steps: Step[] = [];
     const errors: TickReport["errors"] = [];
     const stuck = new Set<string>(); // a drop whose step failed waits for the next tick
+    let collected = false; // fees are collected at most once a tick
 
-    // The pool is the treasury's SOL at today's price, so it's read fresh: at the start, and after
-    // a prize is swapped out. If it can't be read, the last known value stands.
+    // The pool is the treasury's SOL at today's price, plus the creator fees not collected yet, so
+    // it's read fresh: at the start, and after fees come in or a prize is swapped out. If either
+    // can't be read, its last known value stands.
     const refreshPool = async () => {
       try {
-        state = { ...state, treasuryCents: await effects.readTreasury() };
+        state = { ...state, treasuryCents: await effects.readTreasury(), poolReadAt: now.toISOString() };
       } catch (err) {
         errors.push({ what: "read treasury", error: err instanceof Error ? err.message : String(err) });
+      }
+      if (!effects.readCreatorFees) return;
+      try {
+        state = { ...state, uncollected: await effects.readCreatorFees() };
+      } catch (err) {
+        errors.push({ what: "read creator fees", error: err instanceof Error ? err.message : String(err) });
       }
     };
     await refreshPool();
@@ -40,7 +48,7 @@ export async function tick(store: EngineStore, effects: Effects, now = new Date(
     for (let pass = 0; pass < MAX_PASSES; pass++) {
       let moved = false;
       for (const step of decide(state, now)) {
-        if (stuck.has(step.dropId)) continue;
+        if (stuck.has(step.dropId) || (step.effect.type === "collect" && collected)) continue;
         const drop = state.drops.find((d) => d.id === step.dropId)!;
         let next: DropRecord;
         try {
@@ -51,11 +59,12 @@ export async function tick(store: EngineStore, effects: Effects, now = new Date(
           continue;
         }
         if (step.effect.type === "alert") state = { ...state, sentAlerts: [...state.sentAlerts, step.effect.key] };
+        else if (step.effect.type === "collect") collected = true;
         else if (next !== drop) state = { ...state, drops: state.drops.map((d) => (d.id === next.id ? next : d)) };
         else continue; // nothing changed yet, e.g. the randomness isn't on-chain
         steps.push(step);
         moved = true;
-        if (step.effect.type === "fund") await refreshPool();
+        if (step.effect.type === "fund" || step.effect.type === "collect") await refreshPool();
         await store.save(state); // after every step, so a finished step is never repeated
       }
       if (!moved) break;
@@ -72,6 +81,10 @@ async function perform(fx: Effects, d: DropRecord, e: Effect, now: Date, rng: ()
       break;
     case "snapshot":
       result = await fx.snapshot(d);
+      break;
+    case "collect":
+      if (!fx.collect) throw new Error("collecting creator fees isn't set up");
+      await fx.collect(d, e.lamports);
       break;
     case "fund":
       await fx.fund(d, e.lockedCents);

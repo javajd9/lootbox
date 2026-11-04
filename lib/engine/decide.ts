@@ -14,9 +14,11 @@ const SLOW_ORDER_MS = DAY; // Zinc usually places an order within hours
 // The winner is known.
 const DRAWN = new Set<Stage>(["claiming", "fulfilling", "delivered", "complete"]);
 
-// The pool now filling. Each prize leaves the treasury the moment its pool fills, so whatever a
-// drop collected past its goal is still in here and rolls into the next drop on its own.
-export const poolCents = (state: EngineState) => state.treasuryCents;
+// The pool now filling: the treasury, plus creator fees pump.fun is still holding for it. Each
+// prize leaves the treasury the moment its pool fills, so whatever a drop collected past its goal
+// is still in here and rolls into the next drop on its own.
+export const poolCents = (state: EngineState) => state.treasuryCents + (state.uncollected?.cents ?? 0);
+const COLLECT_MIN_LAMPORTS = Math.round(RULES.collectMinSol * 1e9);
 
 const alert = (key: string, message: string): Effect => ({ type: "alert", key, message });
 
@@ -40,7 +42,11 @@ export function decide(state: EngineState, now: Date): Step[] {
         break;
       case "funding":
         if (t >= at(d.snapshotDue[0])) add(d, { type: "snapshot" });
-        else if (poolCents(state) >= d.goalCents) add(d, { type: "fund", lockedCents: d.goalCents });
+        else if (poolCents(state) >= d.goalCents) {
+          // Full, counting fees not collected yet: those come in first, so the treasury can pay.
+          const waiting = state.uncollected?.lamports ?? 0;
+          add(d, state.treasuryCents < d.goalCents && waiting > 0 ? { type: "collect", lamports: waiting } : { type: "fund", lockedCents: d.goalCents });
+        }
         break;
       case "snapshotting":
         // The final snapshot, then the ticket list is locked straight away.
@@ -70,6 +76,13 @@ export function decide(state: EngineState, now: Date): Step[] {
         break;
     }
   });
+
+  // Enough creator fees waiting: collect them, fingerprinted under the drop they're filling.
+  const waiting = state.uncollected?.lamports ?? 0;
+  const filling = state.drops.find((d) => d.stage === "funding") ?? [...state.drops].reverse().find((d) => !d.hold);
+  if (filling && waiting >= COLLECT_MIN_LAMPORTS && !steps.some((s) => s.effect.type === "collect")) {
+    steps.unshift({ dropId: filling.id, effect: { type: "collect", lamports: waiting } });
+  }
 
   // Everything has been drawn and nothing is queued: the homepage has no pool to fill.
   const last = state.drops.at(-1);
@@ -142,6 +155,7 @@ export function apply(d: DropRecord, effect: Effect, result: unknown, now: Date,
       return { ...d, stage: "delivered" };
     case "complete":
       return { ...d, stage: "complete" };
+    case "collect": // the treasury changes, not the drop
     case "alert":
       return d;
   }

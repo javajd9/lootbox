@@ -1,9 +1,23 @@
 // Turns each poll of the engine's feed into what the homepage shows. When the drop on stage gets
 // its winner, the draw plays first; the next drop takes over only after the winner has been shown.
-import type { LiveDrop } from "./useLiveDrop";
+import { txUrl } from "./format";
+import type { LiveDrop, Trade } from "./useLiveDrop";
 import type { LiveView } from "./view";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+const KEEP_SEEN = 100;
+
+// Each real trade since the last poll becomes a coin, oldest first. The ones already in the feed
+// when the page loads only mark as seen, so a fresh visitor doesn't get twenty coins at once.
+function newTrades(s: LiveDrop, v: LiveView, nextTradeId: () => number): { trades: Trade[]; seenFees: string[] } {
+  const fees = v.fees ?? [];
+  const seen = new Set(s.seenFees ?? []);
+  const fresh = s.seenFees ? fees.filter((f) => !seen.has(f.signature)).reverse() : [];
+  return {
+    trades: fresh.map((f) => ({ id: nextTradeId(), usd: round2(f.feeUsd), tradeUsd: f.tradeUsd, side: f.side, url: txUrl(f.signature, v.cluster) })),
+    seenFees: [...fees.map((f) => f.signature), ...(s.seenFees ?? []).filter((sig) => !fees.some((f) => f.signature === sig))].slice(0, KEEP_SEEN),
+  };
+}
 
 export function applyView(s: LiveDrop, v: LiveView, nextTradeId: () => number): LiveDrop {
   // A reveal, or the winner on stage, finishes before anything else changes.
@@ -25,7 +39,11 @@ export function applyView(s: LiveDrop, v: LiveView, nextTradeId: () => number): 
   const sameDrop = v.drop.id === s.drop.id;
   const funded = v.drop.stage === "snapshotting" || v.drop.stage === "drawing";
   const fundedUsd = funded ? goalUsd : Math.min(goalUsd, round2(v.poolCents / 100));
-  const gained = sameDrop && s.phase === "filling" ? round2(fundedUsd - s.fundedUsd) : 0;
+  const filling = sameDrop && s.phase === "filling";
+  const gained = filling ? round2(fundedUsd - s.fundedUsd) : 0;
+  // A coin per real trade when the feed has them; an older feed without trades gets one per gain.
+  const fresh = newTrades(s, v, nextTradeId);
+  const coins: Trade[] = v.fees ? (filling ? fresh.trades : []) : gained > 0 ? [{ id: nextTradeId(), usd: gained }] : [];
 
   return {
     ...s,
@@ -37,8 +55,9 @@ export function applyView(s: LiveDrop, v: LiveView, nextTradeId: () => number): 
     drawAt: v.drop.drawAt,
     tickets: v.drop.tickets ?? s.tickets,
     watching: 0, // no viewer count yet
-    // New fees since the last poll drop in as a coin (a big one gets called out).
-    trades: gained > 0 ? [...s.trades.slice(-7), { id: nextTradeId(), usd: gained }] : sameDrop ? s.trades : [],
+    // New fees since the last poll drop in as coins (a big one gets called out).
+    trades: sameDrop ? [...s.trades, ...coins].slice(-8) : coins,
+    seenFees: fresh.seenFees,
     lastWinner: w ? { dropId: w.id, number: w.number, title: w.title, wallet: w.wallet, ticket: w.ticket } : s.lastWinner,
   };
 }
