@@ -19,6 +19,23 @@ const NEEDED = [
   "EXCLUDED_WALLETS",
   "LAUNCH_AT",
   "ALERT_WEBHOOK_URL",
+  "SOLANA_RPC_URL",
+  // Live fee coins: only Helius may add fee events
+  "FEES_WEBHOOK_SECRET",
+  // Claim: the $0 Shopify checkout and its order webhook
+  "SHOPIFY_STORE_DOMAIN",
+  "SHOPIFY_ADMIN_TOKEN",
+  "SHOPIFY_CLIENT_ID",
+  "SHOPIFY_CLIENT_SECRET",
+  "SHOPIFY_WEBHOOK_SECRET",
+  "SHOPIFY_API_VERSION",
+  // Buy + deliver: Zinc orders, Reclaim zkTLS proofs
+  "ZINC_API_KEY",
+  "ZINC_BASE_URL",
+  "ZINC_AUTH",
+  "ZINC_FALLBACK_PHONE",
+  "RECLAIM_APP_ID",
+  "RECLAIM_APP_SECRET",
 ];
 
 const env = new Map(

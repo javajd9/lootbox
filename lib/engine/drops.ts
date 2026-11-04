@@ -1,19 +1,11 @@
 // The drop queue: each drop, its goal, and when the first one opens. The engine picks up any drop
 // listed here that it hasn't seen yet, so adding the next drop means adding it here.
 import { CLUSTER, type Cluster } from "@/lib/chain/solana";
+import { GTA_VI_BUNDLE, type PrizeItem } from "@/lib/config/prizes";
 import type { EngineStore } from "./run";
 import type { DropRecord, EngineState } from "./types";
 
-// One thing the prize is made of, as it's bought. `maxPriceCents` is the most the engine will ever
-// pay for one, all in (its price plus its share of tax and shipping): the order's spending cap is
-// the sum of these, and Zinc refuses any order that would cost more.
-export interface PrizeItem {
-  name: string;
-  asin?: string; // Amazon product ID; bought from https://www.amazon.com/dp/<asin>
-  url?: string; // or any product page Zinc can buy from (e.g. its sandbox test products)
-  quantity: number;
-  maxPriceCents: number;
-}
+export type { PrizeItem };
 
 export interface DropConfig {
   id: string;
@@ -34,8 +26,10 @@ const QUEUES: Record<Cluster, DropConfig[]> = {
     { id: "DEV-002", number: 2, title: "Devnet test drop", goalCents: 1_000, prize: [TEST_PRODUCT] },
     { id: "DEV-003", number: 3, title: "Devnet test drop", goalCents: 1_000, prize: [TEST_PRODUCT] },
   ],
-  // Stays shut until LAUNCH_AT is set. Its ASINs and caps get filled in before launch.
-  "mainnet-beta": [{ id: "DROP-001", number: 1, title: "GTA VI Bundle", goalCents: 200_000, opensAt: process.env.LAUNCH_AT || "2099-01-01T00:00:00Z" }],
+  // Stays shut until LAUNCH_AT is set. Its ASINs and caps are filled in (lib/config/prizes) before launch.
+  "mainnet-beta": [
+    { id: "DROP-001", number: 1, title: "GTA VI Bundle", goalCents: 200_000, opensAt: process.env.LAUNCH_AT || "2099-01-01T00:00:00Z", prize: GTA_VI_BUNDLE },
+  ],
 };
 
 export const dropQueue = (cluster: Cluster = CLUSTER) => QUEUES[cluster];

@@ -59,10 +59,32 @@ export default async function ProofPage({ params }: { params: { dropId: string }
           />
         )}
 
+        {live && (
+          <section className="card">
+            <h2 className="display text-2xl">The raw data</h2>
+            <p className="mt-3 text-sm text-cream/60">
+              Everything these checks use, as JSON, so you can check it with your own tools. See{" "}
+              <a className="underline" href="/docs/verify">Verify it yourself</a> and{" "}
+              <a className="underline" href="/docs/reproduce">Reproduce a draw</a>.
+            </p>
+            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-cream/60">
+              <li>
+                <a className="text-cream underline" href={`/api/proofs/${drop.id}`}>Proof packages</a>: each one exactly as it was
+                hashed, with the Solana transaction that carries its fingerprint.
+              </li>
+              <li>
+                <a className="text-cream underline" href={`/api/draws/${drop.id}`}>Draw data</a>: every holder snapshot, the locked
+                ticket list and each draw round&apos;s randomness.
+              </li>
+            </ul>
+          </section>
+        )}
+
         <section className="card">
           <h2 className="display text-2xl">What you&apos;re trusting</h2>
           <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-cream/60">
-            <li>Not LOOTBOX. Every check above runs in your browser against the raw proofs and on-chain records.</li>
+            <li>Not LOOTBOX, for anything checked above: every check runs in your browser against the raw proofs and on-chain records.</li>
+            <li>LOOTBOX keeps the treasury&apos;s key safe and the winner&apos;s address private until it&apos;s deleted.</li>
             <li>Zinc reports Amazon&apos;s order and the carrier&apos;s delivery status honestly.</li>
             <li>Reclaim&apos;s attestors don&apos;t collude to fake a zkTLS proof.</li>
             <li>&quot;Delivered&quot; is the carrier&apos;s word until the winner signs their receipt (P5).</li>

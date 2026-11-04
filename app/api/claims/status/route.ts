@@ -1,6 +1,7 @@
 // Where a claim stands, for the winner's claim page. Only someone holding the claim token (the
 // winner, who got it after signing) can ask. Once finished, it returns the salt, so the winner can
-// check the on-chain fingerprint against their own address.
+// check the on-chain fingerprint against their own address, until the drop completes and the
+// address and salt are deleted (lib/engine/live.ts, complete).
 import { NextResponse } from "next/server";
 import { explorerTx } from "@/lib/chain/solana";
 import { claimStore } from "@/lib/claims/store";

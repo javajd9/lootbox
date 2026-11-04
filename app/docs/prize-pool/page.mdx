@@ -10,26 +10,28 @@ Prizes are paid for by $LOOT trading, not by ticket sales or deposits.
 
 ## Where the money comes from
 
-pump.fun pays a share of every $LOOT trade's fees to the token's creator. LOOTBOX sends those **creator fees to a public treasury wallet**. Anyone can see every fee that arrives on Solscan. The address is on [Addresses](/docs/addresses).
+pump.fun pays a share of every $LOOT trade's fees to the token's creator. LOOTBOX launches $LOOT from its **public treasury wallet**, so those **creator fees go to the treasury**. Anyone can see every fee that arrives on Solscan. The address is on [Addresses](/docs/addresses).
 
-The prize pool on the live page is the fees that have reached the treasury since the current drop opened, valued in US dollars when they arrived.
+pump.fun holds creator fees until they're collected. LOOTBOX collects them into the treasury once at least {RULES.collectMinSol} SOL is waiting, and whenever a full pool needs them to pay out.
+
+The prize pool on the live page is the SOL in the treasury plus the creator fees still waiting to be collected, valued in US dollars at SOL's current price. Until a pool fills, it's held as SOL, so it moves with SOL's price as well as with every trade.
 
 ## Goals
 
-Every drop has a goal: the cost of its bundle, including tax and shipping, at the prices locked when the drop opens. The first drop, the GTA VI Bundle, has a goal of **${RULES.firstDropGoalUsd.toLocaleString("en-US")}**.
+Every drop has a goal: the cost of its bundle, including tax and shipping. The first drop, the GTA VI Bundle, has a goal of **${RULES.firstDropGoalUsd.toLocaleString("en-US")}**.
 
-The second the pool reaches its goal, [the draw](/docs/the-draw) starts. There's no wait and no manual step.
+The second the pool reaches its goal, the prize money is set aside and [the draw](/docs/the-draw) starts. There's no wait and no manual step.
 
 <Rule rule="leftoverFees" />
 
 ## How the money is spent
 
-- Fees arrive in SOL. When a drop is won, the treasury converts what's needed to USDC on-chain, so every swap is a public transaction.
-- The USDC goes to the purchasing account that pays for the order. That transfer is the **Paid** proof for the drop.
-- The treasury's key never lives on LOOTBOX's web servers. A compromised website can't move treasury funds.
+- **The moment a pool fills, before the draw**, the treasury swaps the goal's worth of SOL to USDC on-chain and sends it to the purchasing account. The swap, the transfer and the drop's fingerprint are all one public transaction. That's the drop's **Paid** proof. From then on, a fall in SOL's price can't shrink the prize.
+- **The order is charged to LOOTBOX's prepaid account with Zinc**, the service that places the order. The team tops that account up from the purchasing account. This step happens outside Solana.
+- **The treasury's key is held by LOOTBOX's drop engine on its servers.** That's how the prize can be paid out the second a pool fills, with nobody pressing a button. The key is never sent to anyone's browser. Every movement in or out of the treasury is public, but you are trusting LOOTBOX to keep that key safe. See [What you're trusting](/docs/trust).
 
 ## What you can check
 
 - Every fee coming into the treasury, on Solscan.
 - Every payment out, and that it matches a drop's **Paid** proof.
-- That the pool on the live page matches the treasury's history.
+- That the pool on the live page matches the treasury's balance plus the fees waiting to be collected.

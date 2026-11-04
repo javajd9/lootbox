@@ -1,4 +1,5 @@
 import { pickWinner } from "@/lib/draws/weighted-pick";
+import { RULES } from "@/lib/config/rules";
 
 export const metadata = { title: "Reproduce a draw" };
 
@@ -17,19 +18,22 @@ Anyone can re-run a LOOTBOX draw from public data and check they get the same wi
 
 ## What you need
 
-| Input | Where it comes from |
+Everything is in the drop's **Draw data**, linked under **The raw data** on its proof page (`/api/draws/<drop>`).
+
+| Input | What's in the draw data |
 |---|---|
-| Every snapshot for the drop | Published as JSON on the drop's proof page. Each file's SHA-256 is posted on Solana when it's taken. |
-| The locked ticket list's fingerprint | A Solana transaction posted before randomness was requested |
-| The randomness | The drop's ORAO VRF request account on Solana (64 bytes) |
+| Every snapshot for the drop | Each snapshot's slot, time, fingerprint and the Solana transaction that posted it, with a link to its full holder list. Each fingerprint is posted when the snapshot is taken |
+| The locked ticket list | The list itself, its fingerprint, and the Solana transaction that posted it before any randomness was requested |
+| The randomness | For each draw round: its seed, the ORAO VRF randomness account on Solana (64 bytes), and the published result |
 
 ## Steps
 
-1. **Check the snapshots.** Hash each snapshot file (SHA-256 over its canonical JSON, keys sorted) and confirm it matches the fingerprint posted on Solana at that time.
-2. **Rebuild the ticket list.** For each wallet, average its balance across the snapshots, then divide by the per-ticket amount and round down. Remove excluded wallets, and any address off the ed25519 curve (owned by a program, so it can't sign). Sort by wallet address.
-3. **Check the lock.** Hash the ticket list and confirm it matches the fingerprint posted before the randomness request.
-4. **Pick.** Run the selection with the VRF's 64 bytes, as below.
-5. **Compare.** The ticket and wallet you get must match the published winner.
+1. **Check the snapshots.** Hash each snapshot's holder list file (SHA-256 over its canonical JSON, keys sorted, no whitespace) and confirm it matches the fingerprint posted on Solana when it was taken. Each snapshot already leaves out the excluded wallets and every address off the ed25519 curve (owned by a program, so it can't sign). Check that none of them appear.
+2. **Rebuild the ticket list.** For each wallet, add up its balance across every snapshot, divide by the number of snapshots, then divide by one ticket's worth in base units ({RULES.tokensPerTicket.toLocaleString("en-US")} $LOOT × 10⁶), rounding down each time. Leave out wallets with 0 tickets. Sort by wallet address, in plain byte order.
+3. **Check the lock.** Hash the list of `{ "wallet", "weight" }` rows (weight as a decimal string, same canonical JSON) and confirm it matches the fingerprint posted before the randomness request.
+4. **Check the seed.** Each round's seed is `SHA-256("LOOTBOX|draw|<drop>|<ticket list fingerprint>|<round>")`, so the randomness is tied to that exact list. Read the 64 random bytes from that seed's ORAO randomness account.
+5. **Pick.** Run the selection with those 64 bytes, as below.
+6. **Compare.** The ticket and wallet you get must match the published winner. If the first winner didn't claim, the redraw is the next round: same ticket list, new seed, new randomness.
 
 ## The selection, exactly
 

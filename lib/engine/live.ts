@@ -185,6 +185,12 @@ export function liveEffects(): Effects {
       return deliveryStep(d, liveDeliveryDeps(conn, ops));
     },
 
+    // The prize has arrived (or the receipt window has closed), so the winner's address, kept only
+    // to ship it, is deleted. The public fingerprint stays; the winner holds the secret code for it.
+    async complete(d) {
+      check(await db.from("claim_addresses").delete().eq("drop_id", d.id), "delete winner address");
+    },
+
     async alert(message) {
       const url = process.env.ALERT_WEBHOOK_URL;
       if (!url) return console.warn(`[alert] ${message}`);

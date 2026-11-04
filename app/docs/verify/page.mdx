@@ -8,36 +8,38 @@ export const receipt = receiptMessage({ dropId: "DROP-001", amazonOrderId: "112-
 
 # Verify it yourself
 
-The proof page runs these checks for you in your browser. This page explains what each one does, so you can run them by hand with your own tools.
+The proof page runs most of these checks for you in your browser. This page explains what each one does, so you can run them by hand with your own tools.
 
 ## The quick way
 
-Open a drop's proof page and press **Verify everything**. Each check runs on your device against the raw proof data, not against a "verified: true" flag from our server. Try **Try tampering** on the [demo proof page](/proof/DROP-000) to watch a check fail when one number changes.
+Open a drop's proof page and press **Verify everything**. It checks the Paid transaction, the order, the delivery, the winner's receipt and the whole proof chain on your device, against the raw proof data and Solana itself, not against a "verified: true" flag from our server. Try **Try tampering** on the [demo proof page](/proof/DROP-000) to watch a check fail when one number changes.
+
+The fee inflows and the draw are checked by hand, below. Everything you need is under **The raw data** on each drop's proof page.
 
 ## By hand, step by step
 
 ### 1. The chain and its fingerprints
 
-1. Download the drop's proof packages from its proof page.
+1. Download the drop's **Proof packages** from its proof page (`/api/proofs/<drop>`).
 2. For each package, compute SHA-256 over its canonical JSON (keys sorted, no whitespace).
 3. Confirm each package's `prevHash` equals the previous package's fingerprint, and the first one's is `null`.
-4. Confirm each fingerprint matches the one posted on Solana for that package. The posting address is on [Addresses](/docs/addresses).
+4. Open each package's `memo_tx` on Solscan. Its memo should read `LOOTBOX|v1|<drop>|<step>|<fingerprint>`, with the same fingerprint, signed by the proof publisher on [Addresses](/docs/addresses).
 
 ### 2. Funded and Paid
 
-Look up the treasury on Solscan. Fee inflows should match the pool, and the **Paid** package's transaction should be a transfer from the treasury to the purchasing account for at least the order total.
+Look up the treasury on Solscan. Fee inflows should match the pool. The drop's Paid transaction should send at least the goal from the treasury to the purchasing account, with the drop's `funded` fingerprint in the same transaction.
 
 ### 3. Drawn
 
-Follow [Reproduce a draw](/docs/reproduce).
+Follow [Reproduce a draw](/docs/reproduce), using the drop's **Draw data** (`/api/draws/<drop>`).
 
 ### 4. Ordered, Shipped, Delivered (zkTLS)
 
 Each of these packages carries a Reclaim proof. Verify it with Reclaim's open-source SDK (`verifyProof` in `@reclaimprotocol/js-sdk`), then check:
 
 - the proof's host is the order service (`api.zinc.com`), not some other server;
-- the revealed fields match what the package says, such as products, quantities, order number or delivery status;
-- the order's items match the drop's locked product list.
+- the revealed fields match what the package says, such as products, order number or delivery status;
+- the order's products match the drop's locked product list.
 
 ### 5. Received
 
@@ -53,4 +55,4 @@ If you won, enter your address and your secret code on the proof page. The finge
 
 ## What runs today
 
-Every check above runs on each live drop's proof page. Your browser reads each fingerprint from Solana's public RPC, checks each zkTLS proof's attestor signatures with Reclaim's SDK, and checks the receipt signature against the winning wallet. The [demo drop](/proof/DROP-000) runs the same chain, receipt and address checks on sample data.
+On every live drop's proof page, your browser runs steps 1, 2 (the Paid transaction), 4, 5 and 6. It reads each fingerprint from Solana's public RPC, checks each zkTLS proof's attestor signatures with Reclaim's SDK, and checks the receipt signature against the winning wallet. The fee inflows (step 2) and the draw (step 3) you check by hand from Solscan and the drop's **Draw data**. The [demo drop](/proof/DROP-000) runs the chain, receipt and address checks on sample data.

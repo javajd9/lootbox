@@ -8,9 +8,9 @@ Once the winner has claimed, the prize is bought and shipped automatically. Nobo
 
 ## Buying
 
-- **Products are locked before a drop opens.** Each item has a fixed retailer product ID (an Amazon ASIN) and a price cap, both shown on the drop. The order is checked against this list automatically.
+- **Products are locked before a drop opens.** Each item has a fixed retailer product ID (an Amazon ASIN) and a price cap, both shown under **In the box** on the homepage. The order is checked against this list automatically.
 - **The order is placed through Zinc**, a service that places retailer orders by API. It orders the exact locked products, shipped to the winner's address, and refuses to go above the cap.
-- **It's paid from the treasury.** USDC moves on Solana from the treasury to the purchasing account. That transaction is the drop's **Paid** proof.
+- **The money comes from the treasury.** The moment the pool filled, the prize's worth moved on Solana from the treasury to the purchasing account as USDC. That transaction is the drop's **Paid** proof. Zinc charges the order to LOOTBOX's prepaid Zinc account, which the team tops up from the purchasing account.
 
 <Rule rule="priceChange" />
 
@@ -26,4 +26,4 @@ Once the winner has claimed, the prize is bought and shipped automatically. Nobo
 
 ## When it's done
 
-When everything has arrived, the winner signs one last message with the winning wallet confirming they received it, at [getlootbox.fun/received](/received). "Delivered" is the carrier's word. The winner's signature is theirs. It's published as the drop's last proof, with its fingerprint on Solana, and the drop is complete. If the winner never signs, the drop completes 14 days after delivery without it, and the proof page shows the receipt as missing.
+When everything has arrived, the winner signs one last message with the winning wallet confirming they received it, at [getlootbox.fun/received](/received). "Delivered" is the carrier's word. The winner's signature is theirs. It's published as the drop's last proof, with its fingerprint on Solana, and the drop is complete. If the winner never signs, the drop completes 14 days after delivery without it, and the proof page shows the receipt as missing. Either way, once the drop is complete, LOOTBOX deletes its copy of the winner's address.

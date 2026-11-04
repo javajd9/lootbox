@@ -7,6 +7,8 @@ export interface PrizeItem {
   productId: string;
   quantity: number;
   image?: string; // transparent cutout in /public/prizes (made with scripts/cutout.mjs)
+  asin?: string; // set once the product is locked
+  maxPriceCents?: number; // the most that will be paid for one, all in, once locked
 }
 
 export interface Drop {

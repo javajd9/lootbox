@@ -1,24 +1,26 @@
 import { buildPackage, hashPackage } from "@/lib/proofs/package";
+import { fingerprintMemo } from "@/lib/chain/memo";
 
 export const metadata = { title: "The 8 proofs" };
 
-export const first = buildPackage({
+export const ordered = buildPackage({
   dropId: "DROP-001",
-  type: "payment",
-  createdAt: "2026-11-20T15:05:00Z",
-  revealed: { from: "<treasury>", to: "<purchasing account>", usdc: 1850 },
-  attestation: { solanaTx: "<transaction signature>" },
+  type: "order",
+  createdAt: "2026-11-20T15:12:00Z",
+  revealed: { source: "zinc", orderId: "…", status: "order_placed", maxPrice: "185000", total: "174997", merchantOrderIds: "\"112-…\"", products: ["https://www.amazon.com/dp/B0…"], zincUrl: "https://api.zinc.com/orders/…" },
+  attestation: { reclaim: "<zkTLS proof>" },
 });
 export const pkg = buildPackage(
   {
     dropId: "DROP-001",
-    type: "order",
-    createdAt: "2026-11-20T15:12:00Z",
-    revealed: { status: "request_processed", amazonOrderId: "112-…", items: [{ productId: "B0…", quantity: 1 }], totalUsd: 1749.97 },
+    type: "tracking",
+    createdAt: "2026-11-22T09:31:00Z",
+    revealed: { source: "zinc", orderId: "…", milestone: "shipped", at: "2026-11-22T09:30:00Z", carrier: "ups" },
     attestation: { reclaim: "<zkTLS proof>" },
   },
-  first,
+  ordered,
 );
+export const memo = fingerprintMemo("DROP-001", "shipped", hashPackage(pkg));
 
 <p className="eyebrow mb-4">Docs · Proof</p>
 
@@ -29,10 +31,10 @@ Every drop moves through eight steps. Each step is backed by evidence that comes
 | Step | Proven by | Public | Hidden |
 |---|---|---|---|
 | **1. Funded** | Fee transactions into the treasury on Solana | Amounts, transactions | Nothing |
-| **2. Drawn** | The ticket list's fingerprint on Solana, plus the ORAO VRF result | Ticket list, randomness, winning ticket | Nothing |
-| **3. Claimed** | The winning wallet's signature, plus the address fingerprint | Wallet, fingerprint | The address |
-| **4. Paid** | USDC transfer from the treasury to the purchasing account on Solana | Amount, transaction | Nothing |
-| **5. Ordered** | A zkTLS proof of the order service's own response | Products, quantities, prices, retailer order number, status | Name, address, phone, API keys |
+| **2. Paid** | The moment the pool fills: one Solana transaction that swaps the goal's worth to USDC, sends it from the treasury to the purchasing account, and carries the drop's fingerprint | Amount, transaction | Nothing |
+| **3. Drawn** | Every snapshot's fingerprint and the ticket list's fingerprint on Solana, plus the ORAO VRF result | Snapshots, ticket list, randomness, winning ticket | Nothing |
+| **4. Claimed** | The address fingerprint, posted on Solana once the winning wallet has signed and finished the checkout | The fingerprint | The address |
+| **5. Ordered** | A zkTLS proof of the order service's own response | Products, price cap, total, retailer order number, status | Name, address, phone, API keys |
 | **6. Shipped** | A zkTLS proof of the order service's tracking record | Carrier, "shipped", time | Tracking number, locations |
 | **7. Delivered** | Same as above, once every package has arrived | "Delivered", time | Tracking number, locations, who signed |
 | **8. Received** | A message signed by the winning wallet | The message, the signature | Nothing private |
@@ -41,20 +43,26 @@ Every drop moves through eight steps. Each step is backed by evidence that comes
 
 When a server sends data over HTTPS, the connection is encrypted and authenticated, but normally only you can see that it happened. **zkTLS** (LOOTBOX uses Reclaim Protocol's zkFetch) adds an independent witness to the connection and produces a proof that this exact response came from that server. Selected parts can be blacked out without breaking the proof. So instead of a screenshot of an order, you get the order service's real response with the address removed, and anyone can verify it wasn't edited.
 
-## The chain
+## Fingerprints and the chain
 
-Each step's evidence is wrapped in a **proof package**, and every package includes the fingerprint of the one before it:
+Every fingerprint LOOTBOX posts is a Solana memo in one format, `LOOTBOX|v1|<drop>|<step>|<values>`, signed by the proof publisher on [Addresses](/docs/addresses).
+
+**Steps 1 to 4 happen on Solana**, so their evidence is the transaction itself. Paid, Drawn and Claimed each carry their fingerprint in that transaction.
+
+**Steps 5 to 8 come from outside Solana**, so each one's evidence is wrapped in a **proof package**, and every package includes the fingerprint of the one before it:
 
 - **Editing a package changes its fingerprint**, which breaks the link from the next one.
 - **Removing or reordering packages breaks the chain.**
 - **Each package's fingerprint is posted on Solana when it's published**, so even the newest package can't be changed later.
 
-Here's a real package, built by the same code that will publish them. It's the order step, chained to a payment step before it:
+Here's a package built by the same code that publishes them. It's the Shipped step, chained to the Ordered step before it:
 
 <CodeBlock label="Proof package">{JSON.stringify(pkg, null, 2)}</CodeBlock>
 
 <CodeBlock label="Its fingerprint (SHA-256 of the package, keys sorted)">{hashPackage(pkg)}</CodeBlock>
 
+<CodeBlock label="As posted on Solana">{memo}</CodeBlock>
+
 ## Where to see them
 
-Every drop has a proof page that lists its packages and re-checks them in your browser. Try the [demo proof page](/proof/DROP-000), including **Try tampering**, to watch a check fail. To check things by hand, see [Verify it yourself](/docs/verify).
+Every drop has a proof page that re-checks Paid, Ordered, Delivered, Received and the whole package chain in your browser, and links the raw data for everything else. Try the [demo proof page](/proof/DROP-000), including **Try tampering**, to watch a check fail. To check things by hand, see [Verify it yourself](/docs/verify).

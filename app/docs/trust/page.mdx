@@ -8,7 +8,7 @@ No system is trustless all the way down. Here's exactly what LOOTBOX's proofs co
 
 ## You don't have to trust LOOTBOX for
 
-- **The pool.** Every fee in and every payment out is on Solana.
+- **Seeing the money.** Every fee into the treasury and every payment out of it is on Solana.
 - **The draw.** The ticket list is locked on-chain before the randomness exists, and anyone can re-run the math.
 - **The purchase.** The order proof comes from the order service's own server, not from us, and can't be edited.
 - **The proof history.** Every proof's fingerprint is on Solana. Nothing can be quietly changed afterward.
@@ -17,8 +17,11 @@ No system is trustless all the way down. Here's exactly what LOOTBOX's proofs co
 
 | Who | For what | Why it's reasonable |
 |---|---|---|
+| **LOOTBOX** | Keeping the treasury's key safe, topping up the Zinc account the order is charged to, and keeping the winner's address private until it's deleted | Every move the treasury makes is public on Solana, so misuse would show. The address is never published, and it's deleted when the drop is complete |
 | **Solana** | Recording transactions and fingerprints | The chain everything else runs on |
 | **ORAO VRF** | Producing randomness nobody can predict or choose | Its randomness comes with a proof that's checked on-chain |
+| **Jupiter** | Swapping the pool's SOL to USDC at a fair price | The swap is a public transaction, and it fails rather than cost more than 0.5% over its quote |
+| **Shopify** | Collecting the winner's address at the $0 checkout | A standard store checkout. It sends the address to LOOTBOX's server and nowhere public |
 | **Zinc** | Reporting the Amazon order truthfully | An independent order service. It has no stake in who wins |
 | **The carrier, through Zinc** | Reporting delivery truthfully | Zinc follows the carrier's tracking. Its record is proven with zkTLS |
 | **Reclaim Protocol's witnesses** | Not colluding to fake a zkTLS proof | Independent operators. A fake would need them to collude |
@@ -27,6 +30,7 @@ No system is trustless all the way down. Here's exactly what LOOTBOX's proofs co
 
 - **That "Delivered" means the winner has it.** Carriers sometimes get it wrong. That's why the last step is the winner's own signature.
 - **That a winner isn't connected to the team.** Team and treasury wallets are published and excluded. We can't prove nobody on the team owns another wallet. But the draw is random, so any wallet only wins as often as its tickets allow, and it can't be steered.
+- **That nobody at LOOTBOX read the address.** It's kept privately so the prize can be shipped. The proofs show it was never published, not that it was never seen.
 - **What happens after delivery.** A winner can sell, keep or gift their prize.
 
 If you find a gap we haven't listed, tell us. It belongs on this page.

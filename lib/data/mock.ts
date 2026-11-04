@@ -3,6 +3,7 @@
 // proof page's checks genuinely run against them.
 import nacl from "tweetnacl";
 import bs58 from "bs58";
+import { GTA_VI_BUNDLE } from "../config/prizes";
 import { commitWithSalt } from "../proofs/commitment";
 import { buildPackage, hashPackage, type ProofPackage } from "../proofs/package";
 import { receiptMessage } from "../proofs/receipt";
@@ -11,11 +12,15 @@ import type { PastDrop } from "../live/types";
 
 const TREASURY = "LooTTreasury1111111111111111111111111111111";
 
-const GTA_ITEMS = [
-  { name: "PS5 Pro", productId: "ASIN-TBD-PS5PRO", quantity: 1, image: "/prizes/ps5-pro.webp" },
-  { name: "OLED Monitor", productId: "ASIN-TBD-OLED", quantity: 1, image: "/prizes/oled-monitor.webp" },
-  { name: "GTA VI", productId: "ASIN-TBD-GTA6", quantity: 1, image: "/prizes/gta6.webp" },
-];
+// The same list the engine buys from (lib/config/prizes), so the homepage shows what's bought.
+const GTA_ITEMS = GTA_VI_BUNDLE.map((p, i) => ({
+  name: p.name,
+  productId: p.asin ?? `ASIN-TBD-${i + 1}`,
+  quantity: p.quantity,
+  image: p.image,
+  asin: p.asin,
+  maxPriceCents: p.maxPriceCents || undefined,
+}));
 
 const EXCLUDED = [
   { label: "pump.fun bonding curve", wallet: "TBD at launch" },
@@ -135,21 +140,22 @@ export function getDemoHistory(): PastDrop[] {
   return [
     sample("S03", "Switch 2 Bundle", 750, "9mQ2HvL4kTz8RwX1cPe7nJdB3sYf6aGu5oKiMq2tVb8N", 31_877, 96, {
       funded: "2026-10-26T19:40:00Z",
+      paid: "2026-10-26T19:40:00Z", // the prize money moves the moment the pool fills
       drawn: "2026-10-26T19:41:00Z",
     }),
     sample("S02", "Apple Drop", 2400, "Bf3aYk7Lw2PqR9xTnD4vMc8sHj1uZe6gKo5iWb3tAh1z", 5_204, 1_310, {
       funded: "2026-10-18T02:10:00Z",
+      paid: "2026-10-18T02:10:00Z",
       drawn: "2026-10-18T02:11:00Z",
       claimed: "2026-10-18T16:30:00Z",
-      paid: "2026-10-18T16:34:00Z",
       ordered: "2026-10-18T16:41:00Z",
       shipped: "2026-10-20T11:05:00Z",
     }),
     sample("S01", "Charizard Vault", 1900, "7xKpQ2vRdLm3nBf8hTzW1cYe5sJa9uGq4oXiN6kE9mQ2", 66_013, 433, {
       funded: "2026-10-14T21:00:00Z",
+      paid: "2026-10-14T21:00:00Z",
       drawn: "2026-10-14T21:01:00Z",
       claimed: "2026-10-15T09:12:00Z",
-      paid: "2026-10-15T09:15:00Z",
       ordered: "2026-10-15T09:20:00Z",
       shipped: "2026-10-16T14:00:00Z",
       delivered: "2026-10-24T18:22:00Z",

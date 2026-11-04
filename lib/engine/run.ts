@@ -104,10 +104,13 @@ async function perform(fx: Effects, d: DropRecord, e: Effect, now: Date, rng: ()
     case "trackDelivery":
       result = fx.trackDelivery ? await fx.trackDelivery(d) : { waiting: "delivery tracking isn't set up" };
       break;
+    case "complete":
+      await fx.complete?.(d);
+      break;
     case "alert":
       await fx.alert(e.message);
       break;
-    // redraw, markDelivered and complete are bookkeeping only
+    // redraw and markDelivered are bookkeeping only
   }
   return apply(d, e, result, now, rng);
 }

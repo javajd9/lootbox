@@ -133,12 +133,18 @@ export default function ClaimPage() {
           <p className="break-all font-mono text-xs">
             <span className="hud">Fingerprint</span> {claim.commitment}
           </p>
-          <p className="break-all font-mono text-xs">
-            <span className="hud">Secret code</span> {claim.salt}
-          </p>
-          <p className="break-all font-mono text-xs">
-            <span className="hud">Address as hashed</span> {claim.normalized}
-          </p>
+          {claim.salt ? (
+            <>
+              <p className="break-all font-mono text-xs">
+                <span className="hud">Secret code</span> {claim.salt}
+              </p>
+              <p className="break-all font-mono text-xs">
+                <span className="hud">Address as hashed</span> {claim.normalized}
+              </p>
+            </>
+          ) : (
+            <p className="text-mute text-sm">This drop is complete, so LOOTBOX has deleted its copy of your address and secret code.</p>
+          )}
           <p className="text-sm text-cream/70">
             When it arrives,{" "}
             <a className="underline" href={`/received?drop=${encodeURIComponent(claim.dropId)}`}>

@@ -82,6 +82,8 @@ export interface Effects {
   // One step of following the prize to the winner; called each tick until it's delivered and proven.
   // Optional: without it, a shipped drop waits.
   trackDelivery?(drop: DropRecord): Promise<DeliveryResult>;
+  // The drop is done: forget what was only kept to ship it (the winner's address). Optional.
+  complete?(drop: DropRecord): Promise<void>;
   alert(message: string): Promise<void>;
 }
 
