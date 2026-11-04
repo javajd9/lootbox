@@ -13,6 +13,7 @@ export interface DropSummary {
   status: DropStatus;
   openedAt?: string;
   winner?: string; // the current round's, once drawn
+  claimed: boolean; // the winner has finished the claim (its address fingerprint is on-chain)
   proofs: number; // proof packages published so far
 }
 
@@ -22,14 +23,16 @@ export async function dropSummaries(cluster: Cluster = CLUSTER): Promise<DropSum
   const queue = dropQueue(cluster);
   const ids = queue.map((c) => c.id);
   const db = serverDb();
-  const [dropRows, roundRows, proofRows] = await Promise.all([
+  const [dropRows, roundRows, proofRows, claimRows] = await Promise.all([
     db.from("drops").select("id, status, opened_at").in("id", ids),
     db.from("draw_rounds").select("drop_id, round, winner_wallet").in("drop_id", ids).not("winner_wallet", "is", null),
     db.from("proofs").select("drop_id").in("drop_id", ids),
+    db.from("claims").select("drop_id").in("drop_id", ids).eq("status", "checkout_complete"),
   ]);
   const { data: drops } = check(dropRows, "load drops");
   const { data: rounds } = check(roundRows, "load draw rounds");
   const { data: proofs } = check(proofRows, "load proofs");
+  const { data: claims } = check(claimRows, "load claims");
   return queue
     .map((c): DropSummary => {
       const row = drops?.find((d) => d.id === c.id);
@@ -44,6 +47,7 @@ export async function dropSummaries(cluster: Cluster = CLUSTER): Promise<DropSum
         status,
         openedAt: (row?.opened_at as string | null) ?? undefined,
         winner: DRAWN.has(status) ? (latest?.winner_wallet as string | undefined) : undefined,
+        claimed: (claims ?? []).some((cl) => cl.drop_id === c.id),
         proofs: (proofs ?? []).filter((p) => p.drop_id === c.id).length,
       };
     })

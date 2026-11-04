@@ -32,7 +32,7 @@ function DropRow({ d }: { d: DropSummary }) {
         <span className="hud">{usd(d.goalUsd)}</span>
       </span>
       <span className="hidden font-mono text-sm text-cream/80 md:block">{d.winner ? shortWallet(d.winner) : "—"}</span>
-      <span className="hud whitespace-nowrap text-cream">{STATUS[d.status]}</span>
+      <span className="hud whitespace-nowrap text-cream">{d.status === "claiming" && d.claimed ? "Claimed · ordering" : STATUS[d.status]}</span>
       <span className="hud hidden text-right md:block">{d.proofs ? `${d.proofs} proof${d.proofs === 1 ? "" : "s"}` : ""}</span>
       <span className="hud text-right text-loot">{opened ? "Check →" : ""}</span>
     </>
