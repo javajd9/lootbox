@@ -106,10 +106,13 @@ if (treasury && ops && prize) {
 section("Solana mainnet");
 const conn = connection();
 let mint: PublicKey | undefined;
-try {
-  mint = new PublicKey(env.LOOT_MINT!.trim());
-} catch {
-  fail("LOOT_MINT isn't an address");
+if (!env.LOOT_MINT?.trim()) fail("no $LOOT yet: create it on pump.fun from the treasury wallet, then set LOOT_MINT");
+else {
+  try {
+    mint = new PublicKey(env.LOOT_MINT.trim());
+  } catch {
+    fail("LOOT_MINT isn't an address");
+  }
 }
 
 if (mint && treasury) {
