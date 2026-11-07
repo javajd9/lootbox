@@ -191,7 +191,7 @@ function Plates({ items }: { items: PrizeItem[] }) {
 }
 
 export function HeroTicket({ prizes, links }: { prizes: Record<string, PrizeItem[]>; links: OfficialLinks }) {
-  const { state, live, nextDrop, finishDraw } = useLive();
+  const { state, nextDrop, finishDraw } = useLive();
   const { phase, drop, fundedUsd, tickets, watching, trades, draw, lastWinner } = state;
   const pct = Math.min(1, fundedUsd / drop.goalUsd);
   const toGo = Math.max(0, drop.goalUsd - fundedUsd);
@@ -348,7 +348,7 @@ export function HeroTicket({ prizes, links }: { prizes: Record<string, PrizeItem
                       </p>
                       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
                         <Link href={`/proof/${drop.id}`} className="button button-ink">Verify the draw</Link>
-                        <Link href={`/claim?${live ? "live&" : ""}drop=${encodeURIComponent(drop.id)}`} className="link">Won? Claim your prize</Link>
+                        <Link href={`/claim?drop=${encodeURIComponent(drop.id)}`} className="link">Won? Claim your prize</Link>
                       </div>
                       {nextDrop && (
                         <p className="t-small mt-5">
@@ -362,7 +362,7 @@ export function HeroTicket({ prizes, links }: { prizes: Record<string, PrizeItem
                 <div className="grid items-center gap-4 max-sm:text-center sm:grid-cols-[1fr_auto_1fr]">
                   <p className="t-small text-ink/75">1 ticket for every {per} $LOOT you hold</p>
                   <Link href="/docs" className="link t-small">How it works</Link>
-                  {/* pump.fun once the coin is live on mainnet; until then, where its address will be published */}
+                  {/* pump.fun once LOOT_MINT is set; until then, where its address will be published */}
                   <Link
                     href={links.buy.href}
                     {...(links.buy.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
