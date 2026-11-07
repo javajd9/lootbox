@@ -15,7 +15,7 @@ import type { DropRecord, OrderResult } from "@/lib/engine/types";
 import type { ShippingAddress } from "@/lib/proofs/commitment";
 import { buildPackage, hashPackage, type ProofPackage } from "@/lib/proofs/package";
 import { assertNoPII, PIILeakError } from "@/lib/proofs/pii-guard";
-import { orderCap, overCap, type OrderLine } from "./price";
+import { orderCap, overCap, ZINC_ORDER_FEE_CENTS, type OrderLine } from "./price";
 import { winnerPII } from "./redact";
 import { ZincError, type ZincAddress, type ZincClient, type ZincOrder, type ZincStatus } from "./zinc";
 
@@ -64,7 +64,7 @@ export async function orderStep(drop: DropRecord, deps: OrderDeps): Promise<Orde
   let row = await deps.load(drop.id);
 
   if (!row) {
-    const cap = orderCap(deps.config(drop.id)?.prize, drop.goalCents);
+    const cap = orderCap(deps.config(drop.id)?.prize, drop.goalCents, ZINC_ORDER_FEE_CENTS);
     if (!cap.ok) return { ok: false, reason: `can't order: ${cap.reason}` };
     const winner = await deps.winner(drop);
     if (!winner) return { ok: false, reason: "can't order: no finished claim with an address for this draw round" };

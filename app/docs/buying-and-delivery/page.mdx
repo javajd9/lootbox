@@ -12,7 +12,7 @@ Products are locked before a drop opens. Each item has a fixed retailer product 
 
 The order goes through Zinc, a service that places retailer orders by API. It orders exactly the locked products, ships them to the winner's address, and won't go over the cap.
 
-The money comes from the treasury. When the pool filled, the prize's worth moved on Solana from the treasury to the purchasing account as USDC, and that transaction is the drop's **Paid** proof. Zinc charges the order to LOOTBOX's prepaid Zinc account, which the team tops up from the purchasing account.
+The money comes from the treasury. When the pool filled, the prize's worth moved on Solana from the treasury to the purchasing account as USDC, and that transaction is the drop's **Paid** proof. The purchasing account then pays Zinc for the order in USDC, on Solana, at most the price cap plus Zinc's $1 order fee. Zinc sends back whatever the retailer didn't charge, or everything if the order fails. That payment is a public transaction too, and it's listed in the drop's **Ordered** proof.
 
 <Rule rule="priceChange" />
 

@@ -59,7 +59,7 @@ export function LootboxAddresses() {
         [
           what("Purchasing account"),
           <Address key="p" value={a?.purchasing} pending="Not published yet" />,
-          "Receives the prize's worth in USDC from the treasury the moment a pool fills (the Paid step)",
+          "Receives the prize's worth in USDC from the treasury the moment a pool fills (the Paid step), then pays Zinc for the order in USDC (the Ordered step)",
         ],
         [
           what("Proof publisher"),

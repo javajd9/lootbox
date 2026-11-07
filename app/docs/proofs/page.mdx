@@ -34,7 +34,7 @@ Every drop goes through eight steps. Each one is backed by evidence from the pla
 | **2. Paid** | The moment the pool fills: one Solana transaction that swaps the goal's worth to USDC, sends it from the treasury to the purchasing account, and carries the drop's fingerprint | Amount, transaction | Nothing |
 | **3. Drawn** | Every snapshot's fingerprint and the ticket list's fingerprint on Solana, plus the ORAO VRF result | Snapshots, ticket list, randomness, winning ticket | Nothing |
 | **4. Claimed** | The address fingerprint, posted on Solana once the winning wallet has signed and finished the checkout | The fingerprint | The address |
-| **5. Ordered** | A zkTLS proof of the order service's own response | Products, price cap, total, retailer order number, status | Name, address, phone, API keys |
+| **5. Ordered** | A zkTLS proof of the order service's own response | Products, price cap, total, retailer order number, status, and the USDC payment to Zinc on Solana | Name, address, phone, API keys |
 | **6. Shipped** | A zkTLS proof of the order service's tracking record | Carrier, "shipped", time | Tracking number, locations |
 | **7. Delivered** | Same as above, once every package has arrived | "Delivered", time | Tracking number, locations, who signed |
 | **8. Received** | A message signed by the winning wallet | The message, the signature | Nothing private |

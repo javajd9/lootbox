@@ -28,12 +28,12 @@ When the pool reaches its goal, the prize money is set aside and the ticket list
 
 When a pool fills, before the draw, the treasury swaps the goal's worth of SOL to USDC on-chain and sends it to the purchasing account. The swap, the transfer and the drop's fingerprint are all in one public transaction, which is the drop's **Paid** proof. After that, a drop in SOL's price can't shrink the prize.
 
-The order is charged to LOOTBOX's prepaid account with Zinc, the service that places it. The team tops that account up from the purchasing account. This part happens off Solana.
+When the winner has claimed, the purchasing account pays Zinc, the service that places the order, in USDC on Solana: the price cap plus Zinc's $1 order fee, with anything the retailer didn't charge sent back. That payment is public too, and it's listed in the drop's **Ordered** proof.
 
 The treasury's key is held by LOOTBOX's drop engine on its servers. That's what lets the prize be paid the moment a pool fills. The key is never sent to anyone's browser. Every movement in or out of the treasury is public, but you are trusting LOOTBOX to keep the key safe. See [What you're trusting](/docs/trust).
 
 ## What you can check
 
 - Every fee coming into the treasury, on Solscan.
-- Every payment out, and that it matches a drop's **Paid** proof.
+- Every payment out: the prize's worth to the purchasing account (the **Paid** proof), and the purchasing account's payment to Zinc (in the **Ordered** proof).
 - That the pool on the live page matches the treasury's balance plus the fees waiting to be collected.

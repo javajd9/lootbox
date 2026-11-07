@@ -62,7 +62,7 @@ Every drop leaves eight proofs. Steps 1 to 4 happen on Solana, so the transactio
 | 2 | **Paid** | One transaction that swaps the goal to USDC and pays the purchasing account |
 | 3 | **Drawn** | Snapshot and ticket list fingerprints on Solana, plus the ORAO VRF result |
 | 4 | **Claimed** | A fingerprint of the winner's address, posted once the winning wallet signs |
-| 5 | **Ordered** | A zkTLS proof of Zinc's own order response |
+| 5 | **Ordered** | A zkTLS proof of Zinc's own order response, and the USDC payment to Zinc on Solana |
 | 6 | **Shipped** | A zkTLS proof of Zinc's tracking record |
 | 7 | **Delivered** | The same, once every package has arrived |
 | 8 | **Received** | A message signed by the winning wallet |
@@ -83,7 +83,7 @@ LOOTBOX is one Next.js app on Vercel: the website, the docs, the proof pages and
 | **ORAO VRF** | The randomness for each draw, with a proof that's checked on-chain |
 | **Jupiter** | On mainnet, swaps the prize's worth of SOL to USDC the moment the pool fills |
 | **Shopify** | A $0 checkout where the winner enters their address, so it never passes through LOOTBOX's site |
-| **Zinc** | Buys the prize from the retailer and follows it to the winner's door |
+| **Zinc** | Buys the prize from the retailer, paid in USDC on Solana from the purchasing account, and follows it to the winner's door |
 | **Reclaim zkFetch** | zkTLS proofs of Zinc's order and tracking records |
 | **Supabase** | The engine's state, and the private table that holds the winner's address until it's deleted |
 
@@ -101,7 +101,7 @@ You don't have to take the docs' word for it. These are the files that decide wh
 | How the VRF result picks one ticket | [`lib/draws/weighted-pick.ts`](lib/draws/weighted-pick.ts) |
 | How a winner proves they own the wallet | [`lib/claims/claims.ts`](lib/claims/claims.ts) |
 | How the address fingerprint is made | [`lib/proofs/commitment.ts`](lib/proofs/commitment.ts) |
-| How the prize is ordered and tracked | [`lib/orders/order.ts`](lib/orders/order.ts), [`lib/orders/delivery.ts`](lib/orders/delivery.ts) |
+| How the prize is ordered, paid for and tracked | [`lib/orders/order.ts`](lib/orders/order.ts), [`lib/orders/x402.ts`](lib/orders/x402.ts), [`lib/orders/delivery.ts`](lib/orders/delivery.ts) |
 | What each order proof reveals and hides | [`lib/orders/redact.ts`](lib/orders/redact.ts) |
 | The guard that stops an address leaking into a proof | [`lib/proofs/pii-guard.ts`](lib/proofs/pii-guard.ts) |
 | How proofs are chained and fingerprinted | [`lib/proofs/package.ts`](lib/proofs/package.ts), [`lib/chain/memo.ts`](lib/chain/memo.ts) |

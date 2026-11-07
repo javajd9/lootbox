@@ -23,7 +23,11 @@ export function productUrl(item: PrizeItem): string | null {
   return null;
 }
 
-export function orderCap(items: PrizeItem[] | undefined, goalCents: number): Cap {
+// Zinc's flat fee on every order, paid on top of the order's price cap.
+export const ZINC_ORDER_FEE_CENTS = 100;
+
+// feeCents: what the order costs on top of its cap (Zinc's fee), which the pool has to cover too.
+export function orderCap(items: PrizeItem[] | undefined, goalCents: number, feeCents = 0): Cap {
   if (!items?.length) return { ok: false, reason: "no prize items are set for this drop" };
   if (items.length > MAX_PRODUCTS) return { ok: false, reason: `a prize can have at most ${MAX_PRODUCTS} items` };
   const lines: OrderLine[] = [];
@@ -35,8 +39,9 @@ export function orderCap(items: PrizeItem[] | undefined, goalCents: number): Cap
     lines.push({ name: item.name, url, quantity: item.quantity, maxPriceCents: item.maxPriceCents });
   }
   const maxPriceCents = lines.reduce((n, l) => n + l.maxPriceCents * l.quantity, 0);
-  if (maxPriceCents > goalCents) {
-    return { ok: false, reason: `the prize's price caps add up to $${(maxPriceCents / 100).toFixed(2)}, more than the $${(goalCents / 100).toFixed(2)} pool` };
+  if (maxPriceCents + feeCents > goalCents) {
+    const fee = feeCents ? ` plus Zinc's $${(feeCents / 100).toFixed(2)} order fee` : "";
+    return { ok: false, reason: `the prize's price caps add up to $${(maxPriceCents / 100).toFixed(2)}${fee}, more than the $${(goalCents / 100).toFixed(2)} pool` };
   }
   return { ok: true, lines, maxPriceCents };
 }
