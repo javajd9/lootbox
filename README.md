@@ -20,28 +20,41 @@
 
 <p align="center">
   <a href="https://www.getlootbox.fun"><img src="https://img.shields.io/website?url=https%3A%2F%2Fwww.getlootbox.fun&label=getlootbox.fun&up_message=live&up_color=E9B03A&down_message=down&style=flat-square&labelColor=1C1C21" alt="getlootbox.fun: live"></a>
-  <a href="https://www.getlootbox.fun/api/live"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.getlootbox.fun%2Fapi%2Flive&query=%24.cluster&label=network&color=E9B03A&labelColor=1C1C21&style=flat-square" alt="Network the drop engine runs on"></a>
   <a href="https://github.com/javajd9/lootbox/commits/main"><img src="https://img.shields.io/github/last-commit/javajd9/lootbox/main?label=last%20update&color=E9B03A&labelColor=1C1C21&style=flat-square" alt="Last update"></a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/chain-Solana-E9B03A?style=flat-square&labelColor=1C1C21" alt="Chain: Solana">
+  <img src="https://img.shields.io/badge/chain-Solana%20mainnet-E9B03A?style=flat-square&labelColor=1C1C21" alt="Chain: Solana mainnet">
   <img src="https://img.shields.io/badge/randomness-ORAO%20VRF-E9B03A?style=flat-square&labelColor=1C1C21" alt="Randomness: ORAO VRF">
   <img src="https://img.shields.io/badge/proofs-zkTLS-E9B03A?style=flat-square&labelColor=1C1C21" alt="Proofs: zkTLS">
 </p>
 
 <br>
 
-## Live now
+## Live on Solana
 
-LOOTBOX is built and running at **[getlootbox.fun](https://www.getlootbox.fun)**. This repository is the code behind it: the website, the drop engine, the draw, claims, ordering and the proof publisher. The live site is deployed straight from `main`.
+LOOTBOX runs at **[getlootbox.fun](https://www.getlootbox.fun)**, on Solana mainnet. This repository is the code behind it: the website, the drop engine, the draw, claims, ordering and the proof publisher. The live site is deployed straight from `main`.
 
 | | |
 |---|---|
-| **Website** | Live, with the current drop, your ticket count and every drop's proofs |
-| **Drop engine** | Running on Solana. Until $LOOT launches it runs on devnet, Solana's test network, where test drops have already been drawn. The **network** badge above reads the live site, so it changes on its own at launch |
-| **Drop 001** | GTA VI Bundle: PS5 Pro, OLED monitor and GTA VI, with a $2,000 prize pool |
+| **Website** | The live prize pool, a coin for every trade, your ticket count, and every drop's proofs |
+| **Drop engine** | Runs on its own, checking every drop once a minute |
 | **Docs** | The full rules in plain language at [getlootbox.fun/docs](https://www.getlootbox.fun/docs) |
+
+## Drop after drop
+
+LOOTBOX isn't a one-off giveaway. It's a queue of drops, and every $LOOT trade keeps it moving.
+
+| Drop | Prize | Prize pool |
+|:-:|---|---|
+| **001** | GTA VI Bundle: PS5 Pro, OLED monitor and GTA VI | $2,000 |
+| **002** | Mystery Drop | $2,000 |
+| **003 →** | Added to the queue as the drops ahead of it run | |
+
+- **The next drop opens the moment the last one is drawn.** Nobody signs up again: keep holding $LOOT and you're in every drop.
+- **Nothing is wasted between drops.** If a pool runs past its goal before the draw, the extra rolls into the next drop's pool.
+- **Nobody has to run it.** Every minute the engine does whatever is due, from snapshots to the draw to the order, and after a crash or a slow reply it picks up where it stopped.
+- **Every drop stays on the record.** Each one keeps its proof page, and its fingerprints stay on Solana, so the history only grows.
 
 ## How a drop works
 
@@ -81,7 +94,7 @@ LOOTBOX is one Next.js app on Vercel: the website, the docs, the proof pages and
 | **pump.fun** | $LOOT is a pump.fun coin created from the treasury wallet, so every trade pays the treasury a creator fee |
 | **Helius** | Sends every $LOOT trade to the site, and reads every holder's balance for snapshots |
 | **ORAO VRF** | The randomness for each draw, with a proof that's checked on-chain |
-| **Jupiter** | On mainnet, swaps the prize's worth of SOL to USDC the moment the pool fills |
+| **Jupiter** | Swaps the prize's worth of SOL to USDC the moment the pool fills |
 | **Shopify** | A $0 checkout where the winner enters their address, so it never passes through LOOTBOX's site |
 | **Zinc** | Buys the prize from the retailer, paid in USDC on Solana from the purchasing account, and follows it to the winner's door |
 | **Reclaim zkFetch** | zkTLS proofs of Zinc's order and tracking records |
@@ -93,6 +106,7 @@ You don't have to take the docs' word for it. These are the files that decide wh
 
 | To check | Read |
 |---|---|
+| The drop queue, and what each prize is | [`lib/engine/drops.ts`](lib/engine/drops.ts), [`lib/config/prizes.ts`](lib/config/prizes.ts) |
 | How holdings become tickets | [`lib/draws/tickets.ts`](lib/draws/tickets.ts), [`lib/draws/snapshot.ts`](lib/draws/snapshot.ts) |
 | Why nobody knows when a snapshot will happen | [`lib/engine/schedule.ts`](lib/engine/schedule.ts) |
 | The engine's rules: when each step of a drop is due | [`lib/engine/decide.ts`](lib/engine/decide.ts), [`lib/engine/run.ts`](lib/engine/run.ts) |
