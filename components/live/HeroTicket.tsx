@@ -189,7 +189,7 @@ function Plates({ items }: { items: PrizeItem[] }) {
 }
 
 export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) {
-  const { state, nextDrop, finishDraw } = useLive();
+  const { state, live, nextDrop, finishDraw } = useLive();
   const { phase, drop, fundedUsd, tickets, watching, trades, draw, lastWinner } = state;
   const pct = Math.min(1, fundedUsd / drop.goalUsd);
   const toGo = Math.max(0, drop.goalUsd - fundedUsd);
@@ -346,7 +346,7 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                       </p>
                       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
                         <Link href={`/proof/${drop.id}`} className="button button-ink">Verify the draw</Link>
-                        <Link href="/claim" className="link">Won? Claim your prize</Link>
+                        <Link href={`/claim?${live ? "live&" : ""}drop=${encodeURIComponent(drop.id)}`} className="link">Won? Claim your prize</Link>
                       </div>
                       {nextDrop && (
                         <p className="t-small mt-5">
