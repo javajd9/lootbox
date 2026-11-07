@@ -94,16 +94,20 @@ export async function readCreatorFees(conn: Connection, mint: PublicKey, creator
   if (!curveInfo || !curveInfo.owner.equals(PUMP_PROGRAM_ID)) return NONE;
   const curve = decodeBondingCurve(curveInfo.data);
   const pool = poolInfo?.owner.equals(PUMP_AMM_PROGRAM_ID) ? decodePool(poolInfo.data) : undefined;
+  const graduated = curve.complete && !!pool;
+  // The pool side is only collected once the coin has graduated (lib/treasury/fees), so only then
+  // is it counted: the coin creator vault is shared by all of a creator's coins, and anyone can send
+  // WSOL to it, so before graduation it could hold money the engine can't collect for this coin.
   // A token account's amount is the u64 at byte 64.
   const fees = {
     curveWaiting: curve.creatorFee,
     curveVault: BigInt(Math.max(0, (vaultInfo?.lamports ?? 0) - VAULT_RENT_LAMPORTS)),
-    poolWaiting: pool?.creatorFees ?? 0n,
-    poolVault: ataInfo && ataInfo.data.length >= 72 ? ataInfo.data.readBigUInt64LE(64) : 0n,
+    poolWaiting: graduated ? pool!.creatorFees : 0n,
+    poolVault: graduated && ataInfo && ataInfo.data.length >= 72 ? ataInfo.data.readBigUInt64LE(64) : 0n,
   };
   return {
     coin: true,
-    graduated: curve.complete && !!pool,
+    graduated,
     creator: curve.creator.toBase58(),
     pool,
     ...fees,

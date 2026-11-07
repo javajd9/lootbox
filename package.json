@@ -19,6 +19,7 @@
     "helius:webhook": "tsx scripts/helius-webhook.ts",
     "mainnet:fees-check": "tsx scripts/mainnet-fees-check.ts",
     "mainnet:wallets": "tsx scripts/mainnet-wallets.ts",
+    "fees:probe": "tsx scripts/fees-probe.ts",
     "launch:check": "tsx scripts/launch-check.ts"
   },
   "dependencies": {
