@@ -5,7 +5,6 @@ import { LogoMark, Wordmark } from "@/components/brand/Logo";
 import { CopyAddress } from "@/components/brand/CopyAddress";
 import { MobileMenu } from "@/components/brand/MobileMenu";
 import { officialLinks } from "@/lib/config/links";
-import { legalReady } from "@/lib/config/legal";
 import "./globals.css";
 import "./legacy.css";
 
@@ -78,8 +77,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {NAV.map(([label, href]) => (
                 <Link key={href} href={href} className="hover:text-loot">{label}</Link>
               ))}
-              {/* linked once lib/config/legal.ts is filled in; until then /terms is an unlisted draft */}
-              {legalReady() && <Link href="/terms" className="hover:text-loot">Rules</Link>}
             </div>
             {socials.length > 0 && (
               <div className="flex gap-6 text-sm text-cream/80">
