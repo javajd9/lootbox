@@ -19,13 +19,29 @@
 </p>
 
 <p align="center">
+  <a href="https://www.getlootbox.fun"><img src="https://img.shields.io/website?url=https%3A%2F%2Fwww.getlootbox.fun&label=getlootbox.fun&up_message=live&up_color=E9B03A&down_message=down&style=flat-square&labelColor=1C1C21" alt="getlootbox.fun: live"></a>
+  <a href="https://www.getlootbox.fun/api/live"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.getlootbox.fun%2Fapi%2Flive&query=%24.cluster&label=network&color=E9B03A&labelColor=1C1C21&style=flat-square" alt="Network the drop engine runs on"></a>
+  <a href="https://github.com/javajd9/lootbox/commits/main"><img src="https://img.shields.io/github/last-commit/javajd9/lootbox/main?label=last%20update&color=E9B03A&labelColor=1C1C21&style=flat-square" alt="Last update"></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/chain-Solana-E9B03A?style=flat-square&labelColor=1C1C21" alt="Chain: Solana">
   <img src="https://img.shields.io/badge/randomness-ORAO%20VRF-E9B03A?style=flat-square&labelColor=1C1C21" alt="Randomness: ORAO VRF">
   <img src="https://img.shields.io/badge/proofs-zkTLS-E9B03A?style=flat-square&labelColor=1C1C21" alt="Proofs: zkTLS">
-  <img src="https://img.shields.io/badge/app-Next.js%2014-E9B03A?style=flat-square&labelColor=1C1C21" alt="App: Next.js 14">
 </p>
 
 <br>
+
+## Live now
+
+LOOTBOX is built and running at **[getlootbox.fun](https://www.getlootbox.fun)**. This repository is the code behind it: the website, the drop engine, the draw, claims, ordering and the proof publisher. The live site is deployed straight from `main`.
+
+| | |
+|---|---|
+| **Website** | Live, with the current drop, your ticket count and every drop's proofs |
+| **Drop engine** | Running on Solana. Until $LOOT launches it runs on devnet, Solana's test network, where test drops have already been drawn. The **network** badge above reads the live site, so it changes on its own at launch |
+| **Drop 001** | GTA VI Bundle: PS5 Pro, OLED monitor and GTA VI, with a $2,000 prize pool |
+| **Docs** | The full rules in plain language at [getlootbox.fun/docs](https://www.getlootbox.fun/docs) |
 
 ## How a drop works
 
@@ -55,65 +71,22 @@ The [proof page](https://www.getlootbox.fun/proof) re-runs these checks in your 
 
 **Privacy.** The winner's name, address, phone and email are never published. Only a salted fingerprint of the address goes on-chain, and only the winner can check it. LOOTBOX keeps the address privately until the prize arrives, then deletes it.
 
-<br>
+## Read the code that matters
 
-## Running it locally
+You don't have to take the docs' word for it. These are the files that decide who wins and what gets published.
 
-```bash
-npm install
-cp .env.example .env
-npm run db:migrate
-npm run dev
-```
-
-The site runs at http://localhost:3000. `.env.example` lists every key and what it's for. With no Supabase keys, the homepage shows the drop queue from `lib/data/drops.ts`.
-
-## Project layout
-
-| Path | What's there |
+| To check | Read |
 |---|---|
-| `app/` | Pages and API routes. The docs are MDX files under `app/docs` |
-| `lib/engine/` | The drop engine: opening drops, snapshots, the draw, claims and ordering |
-| `lib/draws/` | Holder snapshots, ticket math, and the weighted pick from VRF randomness |
-| `lib/claims/` | Wallet-signature claims and the Shopify checkout |
-| `lib/orders/` | Zinc orders, delivery tracking, and what each zkTLS proof reveals |
-| `lib/proofs/` | Proof packages, the address fingerprint, the leak guard, and the checks the proof page runs |
-| `lib/treasury/` | Fee collection and the SOL to USDC swap |
-| `supabase/migrations/` | Database schema |
-| `scripts/` | Setup and maintenance commands, listed below |
+| How holdings become tickets | [`lib/draws/tickets.ts`](lib/draws/tickets.ts), [`lib/draws/snapshot.ts`](lib/draws/snapshot.ts) |
+| How the VRF result picks one ticket | [`lib/draws/weighted-pick.ts`](lib/draws/weighted-pick.ts) |
+| The engine's rules: when each step of a drop is due | [`lib/engine/decide.ts`](lib/engine/decide.ts) |
+| What each order proof reveals and hides | [`lib/orders/redact.ts`](lib/orders/redact.ts) |
+| How proofs are chained and fingerprinted | [`lib/proofs/package.ts`](lib/proofs/package.ts) |
+| The guard that stops an address leaking into a proof | [`lib/proofs/pii-guard.ts`](lib/proofs/pii-guard.ts) |
+| The checks the proof page runs in your browser | [`lib/proofs/verify-live.ts`](lib/proofs/verify-live.ts) |
+| How fees are collected and swapped | [`lib/treasury/`](lib/treasury) |
 
-## Commands
-
-| Command | What it does |
-|---|---|
-| `npm run dev` | Local site |
-| `npm run build` | Production build |
-| `npm run typecheck` | TypeScript check |
-| `npm run db:migrate` | Applies `supabase/migrations` (needs `SUPABASE_DB_URL`) |
-| `npm run db:check` | Checks the database is set up and that visitors can't read the engine's private state |
-| `npm run gate:zinc` | Reads a Zinc order and lists which fields the proofs can use |
-| `npm run gate:zkfetch` | Makes a zkTLS proof of that order and confirms no shipping details are in it |
-
-<details>
-<summary><b>Devnet and operations</b></summary>
-<br>
-
-| Command | What it does |
-|---|---|
-| `npm run devnet:setup` | Creates the devnet treasury and prize wallets and fills any blanks in `.env` |
-| `npm run devnet:token` | Creates tLOOT, a devnet stand-in for $LOOT held by a handful of wallets |
-| `npm run devnet:holder` | A test holder whose key is kept locally, so a claim can be signed end to end |
-| `npm run devnet:fees -- 0.05` | Sends test SOL into the devnet treasury, standing in for creator fees |
-| `npm run devnet:snapshot` | Takes a real holder snapshot on devnet and posts its fingerprint |
-| `npm run devnet:draw` | A full draw on devnet: lock, request randomness, pick, post, re-check |
-| `npm run devnet:tick` | Runs the drop engine against devnet from this computer |
-| `npm run fees:simulate` | Sends made-up trades to `/api/fees` so the homepage coins can be watched |
-| `npm run schedule:tick` | Makes Supabase call the drop engine every minute |
-| `npm run helius:webhook` | Registers the Helius webhook that sends every $LOOT trade to `/api/fees` |
-| `npm run mainnet:fees-check` | Simulates the mainnet money-in transactions without sending anything |
-| `npm run vercel:env` | Writes `.keys/vercel.env` with exactly the lines the live site needs |
-
-</details>
+Working on the code itself? See [DEVELOPMENT.md](DEVELOPMENT.md).
 
 <br>
 
@@ -126,4 +99,6 @@ The site runs at http://localhost:3000. `.env.example` lists every key and what 
   </a>
   <br>
   <sub>Don't trust. Check.</sub>
+  <br>
+  <sub>© LOOTBOX. The source is public so anyone can check it. All rights reserved.</sub>
 </p>
