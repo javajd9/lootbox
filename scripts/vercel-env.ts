@@ -19,7 +19,6 @@ const NEEDED = [
   "EXCLUDED_WALLETS",
   "LAUNCH_AT",
   "X_URL",
-  "TELEGRAM_URL",
   "ALERT_WEBHOOK_URL",
   "SOLANA_RPC_URL",
   // Live fee coins: only Helius may add fee events

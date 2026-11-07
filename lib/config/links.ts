@@ -1,7 +1,7 @@
 // LOOTBOX's official links, read from the environment so launch day needs no code change. Once
 // LOOT_MINT is set, "Buy $LOOT" goes to the coin's pump.fun page and the contract address is shown;
-// until then it goes to /docs/addresses, where the addresses will be published. A social link that
-// isn't set (or isn't a real X / Telegram link) is simply left out.
+// until then it goes to /docs/addresses, where the addresses will be published. The X link is left
+// out until it's set (and only an x.com / twitter.com link counts).
 // Server only: it reads the same settings as /docs/addresses.
 import { publishedAddresses } from "./addresses";
 
@@ -10,7 +10,6 @@ export interface OfficialLinks {
   buy: { href: string; external: boolean };
   pumpfun?: string;
   x?: string;
-  telegram?: string;
 }
 
 const https = (url: string | undefined, hosts: string[]) => {
@@ -30,6 +29,5 @@ export function officialLinks(env: Record<string, string | undefined> = process.
     buy: pumpfun ? { href: pumpfun, external: true } : { href: "/docs/addresses", external: false },
     pumpfun,
     x: https(env.X_URL, ["x.com", "twitter.com", "www.x.com", "www.twitter.com"]),
-    telegram: https(env.TELEGRAM_URL, ["t.me", "telegram.me"]),
   };
 }

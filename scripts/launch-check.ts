@@ -61,15 +61,13 @@ section("Settings (.env, copied to Vercel with npm run vercel:env)");
 const required = [
   "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_DB_URL", "CRON_SECRET",
   "HELIUS_API_KEY", "LOOT_MINT", "TREASURY_WALLET_SECRET", "PRIZE_WALLET", "PRIZE_WALLET_SECRET", "OPS_WALLET_SECRET",
-  "LAUNCH_AT", "FEES_WEBHOOK_SECRET", "ALERT_WEBHOOK_URL", "SHOPIFY_STORE_DOMAIN", "SHOPIFY_WEBHOOK_SECRET",
+  "LAUNCH_AT", "FEES_WEBHOOK_SECRET", "X_URL", "SHOPIFY_STORE_DOMAIN", "SHOPIFY_WEBHOOK_SECRET",
   "RECLAIM_APP_ID", "RECLAIM_APP_SECRET", "ZINC_FALLBACK_PHONE",
 ];
 const missing = required.filter((k) => !env[k]?.trim());
 if (missing.length) fail(`not set: ${missing.join(", ")}`);
 else ok("every launch setting is filled in");
 if (!env.SHOPIFY_ADMIN_TOKEN && !(env.SHOPIFY_CLIENT_ID && env.SHOPIFY_CLIENT_SECRET)) fail("Shopify access: set SHOPIFY_ADMIN_TOKEN, or SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET");
-if (!env.X_URL) warn("X_URL isn't set: /docs/addresses tells people the addresses are pinned on X");
-if (!env.TELEGRAM_URL) warn("TELEGRAM_URL isn't set (it's left out of the footer)");
 if ((env.CRON_SECRET ?? "").length < 32) warn("CRON_SECRET is shorter than 32 characters");
 if (env.FEES_WEBHOOK_SECRET && env.FEES_WEBHOOK_SECRET.length < 32) warn("FEES_WEBHOOK_SECRET is shorter than 32 characters");
 
