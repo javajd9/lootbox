@@ -1,5 +1,5 @@
-/* Styles for the docs, proof and claim pages: mono labels for real data, and code blocks.
-   The homepage loads none of this. */
+/* Styles for the docs, proof and claim pages: mono labels for real data, and code blocks. Loaded once,
+   by the root layout: import it nowhere else, or the build can split it into a chunk some pages never load. */
 
 .card {
   @apply rounded-sm border border-line bg-panel p-6;

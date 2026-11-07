@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DocsMobileNav, DocsPager, DocsSidebar } from "@/components/docs/DocsNav";
 import { mono } from "@/lib/fonts";
-import "../legacy.css";
 
 export const metadata: Metadata = {
   title: { default: "Docs — LOOTBOX", template: "%s — LOOTBOX Docs" },

@@ -5,6 +5,7 @@ import { YourTickets } from "@/components/live/TicketCheck";
 import { ProofLedger } from "@/components/live/ProofLedger";
 import { InTheBox } from "@/components/home/InTheBox";
 import { getDropQueue } from "@/lib/data/drops";
+import { officialLinks } from "@/lib/config/links";
 import type { StageDrop } from "@/lib/live/useLiveDrop";
 
 // The homepage: the live raffle ticket, then the record of every drop, winner and proof.
@@ -18,7 +19,7 @@ export default function Home() {
         initial={{ phase: "filling", upcoming: true, drop: toStage(current), fundedUsd: current.fundedUsd, tickets: 0, watching: 0, trades: [], history: [] }}
         upNext={rest.map(toStage)}
       >
-        <HeroTicket prizes={Object.fromEntries([current, ...rest].map((d) => [d.id, d.items]))} />
+        <HeroTicket prizes={Object.fromEntries([current, ...rest].map((d) => [d.id, d.items]))} links={officialLinks()} />
         <TickerTape />
         <YourTickets />
         <ProofLedger />

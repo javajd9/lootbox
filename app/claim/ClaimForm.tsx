@@ -5,7 +5,8 @@ import bs58 from "bs58";
 import type { DropStatus } from "@/lib/data/types";
 import { mono } from "@/lib/fonts";
 import { shortWallet } from "@/lib/live/format";
-import "../legacy.css";
+import { findWallet, walletError } from "@/lib/live/wallet";
+import { WalletMissing } from "@/components/WalletMissing";
 
 // A drawn drop, as the claim page lists it. `open` means it's still waiting for its winner.
 export interface ClaimDrop {
@@ -24,11 +25,6 @@ const CLOSED: Partial<Record<DropStatus, string>> = {
   complete: "Complete",
 };
 
-interface SolanaProvider {
-  connect(): Promise<{ publicKey: { toString(): string } }>;
-  signMessage(message: Uint8Array, encoding: "utf8"): Promise<{ signature: Uint8Array }>;
-}
-
 interface ClaimStatus {
   status: string;
   dropId: string;
@@ -36,11 +32,6 @@ interface ClaimStatus {
   memoUrl?: string;
   salt?: string;
   normalized?: string;
-}
-
-function getProvider(): SolanaProvider | undefined {
-  const w = window as unknown as { phantom?: { solana?: SolanaProvider }; solana?: SolanaProvider };
-  return w.phantom?.solana ?? w.solana;
 }
 
 // The claim token stays in this browser only, so the winner can come back after the checkout.
@@ -58,6 +49,7 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
   const [wallet, setWallet] = useState<string>();
   const [status, setStatus] = useState<{ tone: "ok" | "bad" | "info"; text: string }>();
   const [busy, setBusy] = useState(false);
+  const [missing, setMissing] = useState(false); // no wallet in this browser
   const [token, setToken] = useState<string | null>(null);
   const [checkoutUrl, setCheckoutUrl] = useState<string>();
   const [claim, setClaim] = useState<ClaimStatus>();
@@ -90,10 +82,15 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
   }, [token, claim?.status]);
 
   const connect = async () => {
-    const provider = getProvider();
-    if (!provider) return setStatus({ tone: "bad", text: "No Solana wallet found. Install Phantom or Solflare and refresh." });
-    const { publicKey } = await provider.connect();
-    const address = publicKey.toString();
+    const provider = findWallet();
+    setMissing(!provider);
+    if (!provider) return;
+    let address: string;
+    try {
+      address = await provider.connect();
+    } catch (err) {
+      return setStatus({ tone: "bad", text: walletError(err) });
+    }
     setWallet(address);
     setStatus(undefined);
     // The connected wallet won one of the open drops: pick it for them.
@@ -102,7 +99,7 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
   };
 
   const sign = async () => {
-    const provider = getProvider();
+    const provider = findWallet();
     if (!provider || !wallet) return;
     setBusy(true);
     try {
@@ -110,7 +107,12 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
       const startBody = await start.json();
       if (!start.ok) return setStatus({ tone: "bad", text: startBody.error });
 
-      const { signature } = await provider.signMessage(new TextEncoder().encode(startBody.message), "utf8");
+      let signature: Uint8Array;
+      try {
+        signature = await provider.signMessage(startBody.message);
+      } catch (err) {
+        return setStatus({ tone: "bad", text: walletError(err) });
+      }
       const verify = await fetch("/api/claims/verify", {
         method: "POST",
         body: JSON.stringify({ nonce: startBody.nonce, signature: bs58.encode(signature) }),
@@ -226,7 +228,9 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
                       <span className="row-span-2 font-mono text-loot sm:row-span-1">{String(d.number).padStart(3, "0")}</span>
                       <span className="min-w-0">
                         <span className="block truncate font-bold">{d.title}</span>
-                        <span className="hud block whitespace-nowrap">Won by {shortWallet(d.winner)}</span>
+                        <span className="hud block whitespace-nowrap">
+                          Won by <span className="text-xs normal-case tracking-normal text-cream/80">{shortWallet(d.winner)}</span>
+                        </span>
                       </span>
                       <span className={`hud mt-1 whitespace-nowrap sm:mt-0 ${d.open ? "text-loot" : ""}`}>
                         {d.open ? (isPicked ? "Selected" : "Claim open") : CLOSED[d.status]}
@@ -247,6 +251,7 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
               ) : (
                 <button onClick={connect} className="btn-ghost w-full">Connect wallet</button>
               )}
+              {missing && !wallet && <WalletMissing />}
               {wallet && picked && picked.winner !== wallet && (
                 <p className="text-bad text-sm">This wallet didn&apos;t win drop {String(picked.number).padStart(3, "0")}. Connect the winning wallet.</p>
               )}

@@ -5,17 +5,8 @@
 import { useEffect, useState } from "react";
 import bs58 from "bs58";
 import { mono } from "@/lib/fonts";
-import "../legacy.css";
-
-interface SolanaProvider {
-  connect(): Promise<{ publicKey: { toString(): string } }>;
-  signMessage(message: Uint8Array, encoding: "utf8"): Promise<{ signature: Uint8Array }>;
-}
-
-function getProvider(): SolanaProvider | undefined {
-  const w = window as unknown as { phantom?: { solana?: SolanaProvider }; solana?: SolanaProvider };
-  return w.phantom?.solana ?? w.solana;
-}
+import { findWallet, walletError } from "@/lib/live/wallet";
+import { WalletMissing } from "@/components/WalletMissing";
 
 export default function ReceivedPage() {
   const [dropId, setDropId] = useState("");
@@ -23,21 +14,26 @@ export default function ReceivedPage() {
   const [status, setStatus] = useState<{ tone: "ok" | "bad"; text: string }>();
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [missing, setMissing] = useState(false); // no wallet in this browser
 
   useEffect(() => {
     setDropId(new URLSearchParams(window.location.search).get("drop") ?? "");
   }, []);
 
   const connect = async () => {
-    const provider = getProvider();
-    if (!provider) return setStatus({ tone: "bad", text: "No Solana wallet found. Install Phantom or Solflare and refresh." });
-    const { publicKey } = await provider.connect();
-    setWallet(publicKey.toString());
-    setStatus(undefined);
+    const provider = findWallet();
+    setMissing(!provider);
+    if (!provider) return;
+    try {
+      setWallet(await provider.connect());
+      setStatus(undefined);
+    } catch (err) {
+      setStatus({ tone: "bad", text: walletError(err) });
+    }
   };
 
   const sign = async () => {
-    const provider = getProvider();
+    const provider = findWallet();
     if (!provider || !wallet) return;
     setBusy(true);
     try {
@@ -45,7 +41,12 @@ export default function ReceivedPage() {
       const askBody = await ask.json();
       if (!ask.ok) return setStatus({ tone: "bad", text: askBody.error });
 
-      const { signature } = await provider.signMessage(new TextEncoder().encode(askBody.message), "utf8");
+      let signature: Uint8Array;
+      try {
+        signature = await provider.signMessage(askBody.message);
+      } catch (err) {
+        return setStatus({ tone: "bad", text: walletError(err) });
+      }
       const confirm = await fetch("/api/receipts/confirm", {
         method: "POST",
         body: JSON.stringify({ dropId, wallet, message: askBody.message, signature: bs58.encode(signature) }),
@@ -89,6 +90,7 @@ export default function ReceivedPage() {
           ) : (
             <button onClick={connect} className="btn-ghost w-full">Connect wallet</button>
           )}
+          {missing && !wallet && <WalletMissing />}
           <button onClick={sign} disabled={!wallet || !dropId || busy} className="btn-loot w-full">
             {busy ? "Waiting for signature…" : "Sign: I received it"}
           </button>

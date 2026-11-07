@@ -4,7 +4,6 @@ import { CLUSTER } from "@/lib/chain/solana";
 import type { DropStatus } from "@/lib/data/types";
 import { shortWallet, usd } from "@/lib/live/format";
 import { dropSummaries, type DropSummary } from "@/lib/proofs/drops";
-import "../legacy.css";
 
 // Every drop's proof page, in one list. Read fresh on each visit.
 export const dynamic = "force-dynamic";

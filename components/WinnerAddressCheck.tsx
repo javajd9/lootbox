@@ -31,7 +31,9 @@ export function WinnerAddressCheck({ commitment }: { commitment: string }) {
       <p className="mt-2 text-sm text-cream/60">
         Enter your shipping address and the secret code from your claim page. This runs only in your browser; nothing is sent anywhere.
       </p>
-      <p className="hud mt-3 break-all">Published fingerprint · {commitment}</p>
+      <p className="hud mt-3 break-all">
+        Published fingerprint · <span className="text-sm normal-case tracking-normal text-cream/80">{commitment}</span>
+      </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {FIELDS.map(([key, label]) => (
           <input key={key} className="input" placeholder={label} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />

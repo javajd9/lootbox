@@ -5,7 +5,6 @@ import { HudSection } from "@/components/brand/Hud";
 import { getDropProofs } from "@/lib/data/drops";
 import { mono } from "@/lib/fonts";
 import { liveDropProofs } from "@/lib/proofs/public";
-import "../../legacy.css";
 
 // Live drops are read fresh from the database on every visit; the checks run in the browser.
 export const dynamic = "force-dynamic";
@@ -32,7 +31,8 @@ export default async function ProofPage({ params }: { params: { dropId: string }
           <h1 className="display mt-3 text-5xl sm:text-7xl">{drop.title}</h1>
           {drop.winnerWallet && (
             <p className="hud mt-6 break-all">
-              Winner · <span className="text-cream">{drop.winnerWallet}</span>
+              {/* addresses are case-sensitive: never uppercased like the label */}
+              Winner · <span className="text-sm normal-case tracking-normal text-cream">{drop.winnerWallet}</span>
             </p>
           )}
         </header>

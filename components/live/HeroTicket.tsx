@@ -12,6 +12,8 @@ import { RULES } from "@/lib/config/rules";
 import { coinPx, dropNo, feeLabel, shortWallet, usd } from "@/lib/live/format";
 import { WINNER_HOLD_MS, type DrawResult, type Trade } from "@/lib/live/useLiveDrop";
 import type { PrizeItem } from "@/lib/data/types";
+import type { OfficialLinks } from "@/lib/config/links";
+import { CopyAddress } from "@/components/brand/CopyAddress";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { FillBox } from "./FillBox";
 import { HeroBackdrop } from "./HeroBackdrop";
@@ -188,7 +190,7 @@ function Plates({ items }: { items: PrizeItem[] }) {
   );
 }
 
-export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) {
+export function HeroTicket({ prizes, links }: { prizes: Record<string, PrizeItem[]>; links: OfficialLinks }) {
   const { state, live, nextDrop, finishDraw } = useLive();
   const { phase, drop, fundedUsd, tickets, watching, trades, draw, lastWinner } = state;
   const pct = Math.min(1, fundedUsd / drop.goalUsd);
@@ -360,11 +362,21 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
                 <div className="grid items-center gap-4 max-sm:text-center sm:grid-cols-[1fr_auto_1fr]">
                   <p className="t-small text-ink/75">1 ticket for every {per} $LOOT you hold</p>
                   <Link href="/docs" className="link t-small">How it works</Link>
-                  {/* TODO: point at the pump.fun page once the token exists; until then, where the address will be published */}
-                  <Link href="/docs/addresses" className="button max-sm:order-first max-sm:w-full sm:justify-self-end">
+                  {/* pump.fun once the coin is live on mainnet; until then, where its address will be published */}
+                  <Link
+                    href={links.buy.href}
+                    {...(links.buy.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    className="button max-sm:order-first max-sm:w-full sm:justify-self-end"
+                  >
                     Buy $LOOT
                   </Link>
                 </div>
+                {/* the contract address: here on smaller screens; under the ticket on wide ones, where the ticket's shape is fixed */}
+                {links.mint && (
+                  <div className="mt-4 flex max-sm:justify-center sm:justify-end lg:hidden">
+                    <CopyAddress address={links.mint} onLight />
+                  </div>
+                )}
               </div>
 
               {/* the stub: the box filling with gold, torn off along the perforation */}
@@ -416,6 +428,11 @@ export function HeroTicket({ prizes }: { prizes: Record<string, PrizeItem[]> }) 
               </div>
             </div>
           </div>
+          {links.mint && (
+            <div className="absolute inset-x-0 top-full mt-3 hidden justify-center lg:flex">
+              <CopyAddress address={links.mint} />
+            </div>
+          )}
         </div>
       </div>
     </section>

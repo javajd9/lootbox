@@ -25,7 +25,7 @@ body {
   @apply bg-loot text-ink;
 }
 
-/* Docs, proof and claim pages add their own styles from app/legacy.css. */
+/* app/legacy.css (docs, proof and claim styles) is loaded once, by the root layout. */
 
 @layer components {
   /* ---------- homepage: the raffle-ticket stationery ---------- */
