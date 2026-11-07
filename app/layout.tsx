@@ -91,10 +91,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p className="max-w-md text-xs text-mute">
               Prizes are funded by $LOOT creator fees. Every step, from funding to delivery, is publicly verifiable.
             </p>
-            <p className="max-w-lg text-xs leading-relaxed text-mute">
-              Not financial advice. $LOOT has no promised value and isn&apos;t an investment. Prizes ship to US addresses only. LOOTBOX
-              isn&apos;t affiliated with Sony, Rockstar Games, Take-Two, ASUS or Amazon; product names and images belong to their owners.
-            </p>
           </div>
         </footer>
       </body>
