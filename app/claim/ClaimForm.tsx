@@ -7,6 +7,8 @@ import { mono } from "@/lib/fonts";
 import { shortWallet } from "@/lib/live/format";
 import { findWallet, walletError } from "@/lib/live/wallet";
 import { WalletMissing } from "@/components/WalletMissing";
+import { legalReady } from "@/lib/config/legal";
+import { RULES } from "@/lib/config/rules";
 
 // A drawn drop, as the claim page lists it. `open` means it's still waiting for its winner.
 export interface ClaimDrop {
@@ -258,6 +260,15 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
               <button onClick={sign} disabled={!wallet || !picked || busy} className="btn-loot w-full">
                 {busy ? "Waiting for signature…" : "Sign & claim"}
               </button>
+              {legalReady() && (
+                <p className="text-xs leading-5 text-mute">
+                  By claiming you agree to the{" "}
+                  <a href="/terms" className="underline hover:text-cream">
+                    official rules
+                  </a>
+                  , including the {RULES.claimDays}-day deadline and US-only shipping.
+                </p>
+              )}
             </>
           )}
           {status && (

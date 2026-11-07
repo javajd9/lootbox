@@ -1,0 +1,129 @@
+import { RULES, RULE_TEXT } from "@/lib/config/rules";
+import { LEGAL } from "@/lib/config/legal";
+import { dropQueue } from "@/lib/engine/drops";
+
+{/* DRAFT for legal review. Numbers and rules are read from lib/config, the same settings the drop
+    engine runs on, so this page can't drift from what the system does. Who runs LOOTBOX, the
+    contact address, the governing law and the date come from lib/config/legal.ts. */}
+
+export const Fill = ({ value, missing }) => (value ? value : <span className="font-bold text-loot">[{missing}]</span>);
+export const per = RULES.tokensPerTicket.toLocaleString("en-US");
+export const drops = dropQueue("mainnet-beta");
+export const usd = (cents) => `$${(cents / 100).toLocaleString("en-US")}`;
+export const Contact = () =>
+  LEGAL.contactEmail ? <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a> : <Fill missing="contact email" />;
+
+<p className="eyebrow mb-4">Rules</p>
+
+# Official rules
+
+Effective <Fill value={LEGAL.effective} missing="date" />. These rules cover every LOOTBOX prize drop. By holding $LOOT to take part, or by claiming a prize, you agree to them.
+
+<Callout title="The short version">
+  <p className="leading-7 text-cream/80">Hold $LOOT in a regular Solana wallet. Your average balance across a drop's snapshots gives you tickets. When the prize pool fills, one ticket is drawn with public randomness. The winner has {RULES.claimDays} days to claim and needs a US shipping address. $LOOT is not an investment.</p>
+</Callout>
+
+## 1. Who runs LOOTBOX
+
+LOOTBOX is run by <Fill value={LEGAL.operator} missing="operator's legal name" /> ("the Operator", "LOOTBOX", "we"). You can reach a person at <Contact />.
+
+LOOTBOX isn't sponsored, endorsed or run by pump.fun, Solana, ORAO, Reclaim, Zinc, Shopify, Amazon, or the makers of any prize. Product names, logos and images belong to their owners.
+
+## 2. Who can win
+
+To win a prize you must:
+
+- be at least 18 years old, and an adult where you live;
+- have a shipping address in the United States;
+- live somewhere taking part is legal. Drops are void where prohibited;
+- not be on a US sanctions list, or in a country or region under US sanctions;
+- not be the Operator, someone who works on LOOTBOX, or a member of their immediate family or household.
+
+The Operator's own wallets never hold tickets: the treasury, the purchasing (prize) wallet, the ops wallet, the team and dev wallets, the pump.fun bonding curve and the liquidity pool. They're listed on [Addresses](/docs/addresses).
+
+## 3. How you take part
+
+You take part by holding $LOOT in a Solana wallet you control during a drop. There's no sign-up and no separate entry fee.
+
+- Every **{per} $LOOT** of your average balance during a drop is **one ticket**. Fractions round down, for each wallet on its own.
+- Your average comes from snapshots of every $LOOT balance on Solana. {RULE_TEXT.snapshots}
+- Only wallets that can sign a message count. Accounts run by a program (other liquidity pools, vaults, multisigs) and tokens held for you by an exchange are left out, because they can't claim.
+- Your chance of winning is your tickets divided by all the tickets in the drop. It changes with every snapshot until the ticket list locks.
+
+[Tickets](/docs/tickets) explains the math with examples.
+
+## 4. The prize pool and the prizes
+
+Each drop's prize pool is filled by the creator fees from $LOOT trades on pump.fun, collected into the treasury. When a drop's pool reaches its goal, the prize's worth is moved out of the treasury and the draw begins. {RULE_TEXT.leftoverFees}
+
+export const th = "hud whitespace-nowrap border-b border-line py-3 pr-6 font-normal";
+export const td = "border-b border-line py-3 pr-6 align-top leading-6 text-cream/80";
+
+<div className="my-8 overflow-x-auto border-y border-line">
+  <table className="w-full border-collapse text-left text-sm">
+    <thead>
+      <tr><th className={th}>Drop</th><th className={th}>Prize</th><th className={th}>What's in it</th><th className={th}>Approx. value</th></tr>
+    </thead>
+    <tbody>
+      {drops.map((d) => (
+        <tr key={d.id}>
+          <td className={td}>{String(d.number).padStart(3, "0")}</td>
+          <td className={td}>{d.title}</td>
+          <td className={td}>{(d.prize ?? []).map((p) => (p.quantity > 1 ? `${p.quantity} × ${p.name}` : p.name)).join(", ")}</td>
+          <td className={td}>Up to {usd(d.goalCents)}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+Before a drop opens, its exact products and the most that will be paid for each are published on the [live page](/). A prize is the products as described there: no cash, and no swaps for something else, except as below.
+
+- **Price changes.** {RULE_TEXT.priceChange}
+- **Out of stock or discontinued.** The Operator may replace an item with one of equal or greater value, announced publicly first.
+- **Pre-orders.** If an item isn't released yet when its drop is drawn, it ships when the retailer releases it.
+
+## 5. The draw
+
+When the pool fills, a final snapshot is taken, the ticket list is locked and its fingerprint is posted on Solana. The draw starts {RULES.drawPauseMinutes} minutes later. A random number from ORAO's verifiable randomness service picks one ticket, and the wallet holding it wins. Every step is published so anyone can check it: see [The draw](/docs/the-draw) and [Verify a drop](/docs/verify).
+
+## 6. Claiming a prize
+
+The winning wallet has **{RULES.claimDays} days** from the draw to claim at [Claim](/claim):
+
+1. Sign one message with the winning wallet. It's free and can't move funds.
+2. Enter a US shipping address at a $0 checkout.
+
+{RULE_TEXT.unclaimed} The same happens if the winner isn't eligible (section 2) or can't give a US shipping address in time. A prize that's redrawn can't be claimed by the earlier winner.
+
+LOOTBOX never messages you first, and never asks for your seed phrase or private key, for funds, or for a transaction to claim. Anything that does isn't LOOTBOX. You're responsible for keeping your wallet safe; a prize goes to whoever controls the winning wallet.
+
+## 7. Shipping and delivery
+
+{RULE_TEXT.shipping} The prize is bought from a retailer through Zinc and shipped by the retailer's carrier to the address given at the checkout. The winner can't change the address after the order is placed. Once the carrier marks the prize delivered, the risk of loss passes to the winner. If a delivery fails or a package is lost, the Operator works with the retailer and carrier to replace or reship it, but isn't responsible for carrier delays. Products carry their maker's and retailer's warranties only.
+
+## 8. Taxes
+
+The winner is responsible for any taxes on a prize. In the US a prize counts as income at its fair market value. Where the law requires it, the Operator will ask the winner for tax information (such as an IRS Form W-9) and may report the prize's value to tax authorities.
+
+## 9. $LOOT is not an investment
+
+$LOOT is a token traded on pump.fun and other Solana markets. The Operator doesn't set its price or promise it will have any value. Holding $LOOT gives no ownership of LOOTBOX, no share of profits, and no claim on the treasury or any prize except by winning a drop under these rules. Token prices can fall to zero. Nothing on this site is financial, investment, legal or tax advice.
+
+## 10. Privacy
+
+A winner's name, address and phone go only to the checkout (Shopify), the order service (Zinc), the retailer and the carrier, to ship the prize. LOOTBOX keeps them privately until the drop is complete, then deletes them; only a salted fingerprint is published. [Privacy](/docs/privacy) has the details.
+
+## 11. Fair play
+
+The Operator may disqualify a wallet, and redraw from the same locked ticket list, if it finds tampering with a drop, exploiting a bug, or breaking these rules. If fraud, a technical failure or anything else outside the Operator's control stops a drop from running fairly, the Operator may pause it, redraw it with new randomness, or cancel it, and will say publicly what happened and why. The pool of a cancelled drop is kept for the next drop.
+
+## 12. Limits of responsibility
+
+LOOTBOX is provided as is. To the extent the law allows, the Operator isn't responsible for losses from token prices, blockchain or wallet failures, network outages, third-party services (pump.fun, Solana, ORAO, Reclaim, Zinc, Shopify, retailers, carriers), or prizes after delivery. The Operator's total responsibility for any claim is limited to the value of the prize in question. By claiming a prize, the winner releases the Operator from claims arising from taking part in the drop or from the prize, except where the law doesn't allow that.
+
+## 13. Changes, the law, and contact
+
+The rules for a drop are fixed when it opens, except as described above. Changes apply to drops that open after they're posted here, with a new effective date. These rules are governed by the laws of <Fill value={LEGAL.governingLaw} missing="state" />, and disputes go to its courts, except where the law where you live says otherwise. If part of these rules can't be enforced, the rest still applies.
+
+Questions about a drop or these rules: <Contact />.
