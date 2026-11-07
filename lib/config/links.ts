@@ -1,12 +1,12 @@
-// LOOTBOX's official links, read from the environment so launch day needs no code change. Once the
-// site runs on mainnet with LOOT_MINT set, "Buy $LOOT" goes to the coin's pump.fun page and the
-// contract address is shown; until then it goes to /docs/addresses, where the addresses will be
-// published. A social link that isn't set (or isn't a real X / Telegram link) is simply left out.
+// LOOTBOX's official links, read from the environment so launch day needs no code change. Once
+// LOOT_MINT is set, "Buy $LOOT" goes to the coin's pump.fun page and the contract address is shown;
+// until then it goes to /docs/addresses, where the addresses will be published. A social link that
+// isn't set (or isn't a real X / Telegram link) is simply left out.
 // Server only: it reads the same settings as /docs/addresses.
 import { publishedAddresses } from "./addresses";
 
 export interface OfficialLinks {
-  mint?: string; // the $LOOT contract address, mainnet only
+  mint?: string; // the $LOOT contract address
   buy: { href: string; external: boolean };
   pumpfun?: string;
   x?: string;
@@ -23,7 +23,7 @@ const https = (url: string | undefined, hosts: string[]) => {
 };
 
 export function officialLinks(env: Record<string, string | undefined> = process.env): OfficialLinks {
-  const mint = publishedAddresses(env)?.token;
+  const mint = publishedAddresses(env).token;
   const pumpfun = mint ? `https://pump.fun/coin/${mint}` : undefined;
   return {
     mint,

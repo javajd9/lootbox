@@ -2,7 +2,7 @@
 // homepage can use them without pulling in any server code.
 import type { PastDrop } from "./types";
 
-export type Cluster = "devnet" | "mainnet-beta";
+export type Cluster = "mainnet-beta";
 
 // One real trade's creator fee, in the pool.
 export interface LiveFee {

@@ -5,7 +5,6 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { PublicKey } from "@solana/web3.js";
 import { poolAddress } from "@/lib/chain/pump";
-import { CLUSTER } from "@/lib/chain/solana";
 import { isHeliusPayload, parseFeeEvents } from "@/lib/fees/events";
 import { lastSolUsd, recordFeeEvents } from "@/lib/fees/store";
 import { solPriceUsd } from "@/lib/treasury/price";
@@ -26,7 +25,7 @@ async function solUsd(): Promise<number> {
     price = { usd: await solPriceUsd(), at: Date.now() };
     return price.usd;
   } catch (err) {
-    const last = price?.usd ?? (await lastSolUsd(CLUSTER));
+    const last = price?.usd ?? (await lastSolUsd());
     if (last) return last;
     throw err;
   }
@@ -58,7 +57,7 @@ export async function POST(req: Request) {
   const events = parseFeeEvents(body, mint, poolAddress(new PublicKey(mint)).toBase58());
   if (!events.length) return NextResponse.json({ recorded: 0 });
   try {
-    const recorded = await recordFeeEvents(events, CLUSTER, await solUsd());
+    const recorded = await recordFeeEvents(events, await solUsd());
     return NextResponse.json({ recorded, trades: events.length });
   } catch (err) {
     console.error("recording fee events failed", err);

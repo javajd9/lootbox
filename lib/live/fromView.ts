@@ -14,7 +14,7 @@ function newTrades(s: LiveDrop, v: LiveView, nextTradeId: () => number): { trade
   const seen = new Set(s.seenFees ?? []);
   const fresh = s.seenFees ? fees.filter((f) => !seen.has(f.signature)).reverse() : [];
   return {
-    trades: fresh.map((f) => ({ id: nextTradeId(), usd: round2(f.feeUsd), tradeUsd: f.tradeUsd, side: f.side, url: txUrl(f.signature, v.cluster) })),
+    trades: fresh.map((f) => ({ id: nextTradeId(), usd: round2(f.feeUsd), tradeUsd: f.tradeUsd, side: f.side, url: txUrl(f.signature) })),
     seenFees: [...fees.map((f) => f.signature), ...(s.seenFees ?? []).filter((sig) => !fees.some((f) => f.signature === sig))].slice(0, KEEP_SEEN),
   };
 }

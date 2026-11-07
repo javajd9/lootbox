@@ -1,6 +1,5 @@
-// Every drop on this network, for the proof index (/proof): each one the engine has opened, from
+// Every listed drop, for the proof index (/proof): each one the engine has opened, from
 // the public drops table, then the ones still queued. Newest first.
-import { CLUSTER, type Cluster } from "@/lib/chain/solana";
 import type { DropStatus } from "@/lib/data/types";
 import { check, serverDb } from "@/lib/db";
 import { dropQueue } from "@/lib/engine/drops";
@@ -19,8 +18,8 @@ export interface DropSummary {
 
 const DRAWN = new Set<DropStatus>(["claiming", "fulfilling", "delivered", "complete"]);
 
-export async function dropSummaries(cluster: Cluster = CLUSTER): Promise<DropSummary[]> {
-  const queue = dropQueue(cluster);
+export async function dropSummaries(): Promise<DropSummary[]> {
+  const queue = dropQueue();
   const ids = queue.map((c) => c.id);
   const db = serverDb();
   const [dropRows, roundRows, proofRows, claimRows] = await Promise.all([

@@ -11,7 +11,7 @@ import { buildSnapshot, combineWeights, hashSnapshot, hashWeights, type Snapshot
 import { toTickets } from "@/lib/draws/tickets";
 import { pickWinner } from "@/lib/draws/weighted-pick";
 import { solPriceUsd } from "@/lib/treasury/price";
-import { findFunding, moveToPrize, treasuryCents } from "@/lib/treasury/treasury";
+import { findFunding, treasuryCents } from "@/lib/treasury/treasury";
 import { claimStore } from "@/lib/claims/store";
 import { deliveryStep } from "@/lib/orders/delivery";
 import { liveDeliveryDeps, liveOrderDeps, zincConfigured } from "@/lib/orders/live";
@@ -22,9 +22,8 @@ import { dropConfig, initialState, withQueuedDrops } from "./drops";
 import type { EngineStore } from "./run";
 import { supabaseStore } from "./supabase-store";
 import type { Effects } from "./types";
-// Money in: creator fees and the mainnet USDC swap.
+// Money in: creator fees and the USDC swap.
 import { bondingCurveAddress, poolAddress, readCreatorFees } from "@/lib/chain/pump";
-import { CLUSTER } from "@/lib/chain/solana";
 import { collectCreatorFees } from "@/lib/treasury/fees";
 import { swapToPrize } from "@/lib/treasury/swap";
 import { RESERVE_LAMPORTS } from "@/lib/treasury/treasury";
@@ -58,7 +57,7 @@ export function liveEffects(): Effects {
       return treasuryCents(conn, treasury.publicKey, await solPrice());
     },
 
-    // Zero on devnet: the test token isn't a pump.fun coin.
+    // Zero until LOOT_MINT is a pump.fun coin.
     async readCreatorFees() {
       const fees = await readCreatorFees(conn, new PublicKey(mint), treasury.publicKey);
       const lamports = Number(fees.total);
@@ -109,11 +108,7 @@ export function liveEffects(): Effects {
       const { data: row } = check(await db.from("drops").select("funded_tx").eq("id", d.id).maybeSingle(), "load funding");
       const paid = row?.funded_tx ?? (await findFunding(conn, treasury.publicKey, d.id));
       if (paid) console.warn(`${d.id} was already funded (${paid}); not paying again`);
-      const tx =
-        paid ??
-        (CLUSTER === "mainnet-beta"
-          ? await swapToPrize(conn, ops, treasury, prize, d.id, cents, RESERVE_LAMPORTS)
-          : await moveToPrize(conn, ops, treasury, prize, d.id, cents, await solPrice()));
+      const tx = paid ?? (await swapToPrize(conn, ops, treasury, prize, d.id, cents, RESERVE_LAMPORTS));
       if (!row?.funded_tx) check(await db.from("drops").update({ funded_at: new Date().toISOString(), funded_tx: tx }).eq("id", d.id), "save funding");
     },
 

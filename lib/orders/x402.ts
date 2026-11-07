@@ -3,7 +3,7 @@
 // and no API key: every order carries its own payment, made with the x402 protocol.
 //
 //   1. send the order with no payment       -> 402, Zinc's price in the PAYMENT-REQUIRED header
-//   2. check that price before signing       -> USDC, on this cluster's Solana, at most max_price + $1
+//   2. check that price before signing       -> USDC on Solana mainnet, at most max_price + $1
 //   3. sign a USDC transfer for exactly that -> Zinc's facilitator adds the network fee and settles it
 //   4. send the order again with it          -> 201: the order, and a key for following it
 //
@@ -11,10 +11,9 @@
 // checks that before it settles anything. Whatever the retailer doesn't charge comes back to the prize
 // wallet (all of it, if the order fails).
 //
-// Mainnet only: Zinc has no test mode on this endpoint ("Test mode is not available on /agent/orders"),
-// so devnet drops keep ordering from Zinc's sandbox with a zn_test_ key (./zinc). Checked against the
-// live endpoint: its 402 offers USDC on Solana mainnet for exactly max_price + $1, with Zinc's
-// facilitator as the fee payer.
+// Zinc has no test mode on this endpoint ("Test mode is not available on /agent/orders"). Checked
+// against the live endpoint: its 402 offers USDC on Solana mainnet for exactly max_price + $1, with
+// Zinc's facilitator as the fee payer.
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { PublicKey, type Connection, type Keypair } from "@solana/web3.js";
 import { createKeyPairSignerFromBytes } from "@solana/kit";

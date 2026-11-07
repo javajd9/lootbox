@@ -6,12 +6,13 @@ import { NextResponse } from "next/server";
 import { CLUSTER } from "@/lib/chain/solana";
 import { check, serverDb } from "@/lib/db";
 import { TOKEN_DECIMALS, TOKENS_PER_TICKET } from "@/lib/draws/tickets";
+import { dropConfig } from "@/lib/engine/drops";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export async function GET(req: Request, { params }: { params: { dropId: string } }) {
-  if (!/^[A-Z0-9-]{1,32}$/.test(params.dropId)) return NextResponse.json({ error: "unknown drop" }, { status: 404 });
+  if (!dropConfig(params.dropId)) return NextResponse.json({ error: "unknown drop" }, { status: 404 });
   const id = params.dropId;
   const base = new URL(req.url).origin;
   try {

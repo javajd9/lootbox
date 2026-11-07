@@ -90,7 +90,7 @@ export async function liveView(): Promise<LiveView> {
 
   // The tick reads the pool once a minute; fees from trades since then are added on, so the
   // number moves with every trade.
-  const fees = await recentFees(CLUSTER).catch((err) => {
+  const fees = await recentFees().catch((err) => {
     console.error("fee events unavailable", err);
     return [];
   });

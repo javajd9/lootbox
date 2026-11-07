@@ -1,5 +1,5 @@
 // Made-up trades, shaped exactly like what Helius sends for a real one (a "raw" webhook: the
-// getTransaction JSON). For tests and for npm run fees:simulate, never for anything that counts.
+// getTransaction JSON). For tests only, never for anything that counts.
 import { randomBytes } from "node:crypto";
 import bs58 from "bs58";
 import { PUMP_AMM_PROGRAM_ID, PUMP_PROGRAM_ID } from "@/lib/chain/pump";

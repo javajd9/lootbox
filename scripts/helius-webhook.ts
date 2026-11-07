@@ -7,7 +7,6 @@
 import "dotenv/config";
 import { PublicKey } from "@solana/web3.js";
 import { bondingCurveAddress, poolAddress } from "@/lib/chain/pump";
-import { CLUSTER } from "@/lib/chain/solana";
 
 const API = "https://api.helius.xyz/v0/webhooks";
 
@@ -30,7 +29,7 @@ const apply = process.argv.includes("--apply");
 
 const config = {
   webhookURL: url,
-  webhookType: CLUSTER === "devnet" ? "rawDevnet" : "raw", // raw: the full transaction, with the trade's event in it
+  webhookType: "raw", // the full mainnet transaction, with the trade's event in it
   transactionTypes: ["ANY"],
   accountAddresses: [bondingCurveAddress(mint).toBase58(), poolAddress(mint).toBase58()],
   txnStatus: "success",
@@ -44,7 +43,7 @@ async function helius<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-console.log(`${CLUSTER}: trades of ${mint.toBase58()} -> ${url}`);
+console.log(`Trades of ${mint.toBase58()} -> ${url}`);
 console.log(`  bonding curve  ${config.accountAddresses[0]}`);
 console.log(`  PumpSwap pool  ${config.accountAddresses[1]}`);
 

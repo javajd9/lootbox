@@ -86,16 +86,15 @@ export function useLiveDrop(initial: LiveDrop, upNext: StageDrop[]) {
 
   const nextDrop = upNext.find((d) => d.number === state.drop.number + 1);
 
-  // The drop engine's feed. Shown to everyone once it runs on mainnet; on devnet only with /?live.
+  // The drop engine's feed.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
     let timer: ReturnType<typeof setTimeout>;
     let stopped = false;
     const poll = async () => {
       try {
         const res = await fetch("/api/live", { cache: "no-store" });
         const view = res.ok ? ((await res.json()) as LiveView) : null;
-        if (view && (view.cluster === "mainnet-beta" || params.has("live"))) {
+        if (view) {
           latest.current = view;
           setLive(true);
           setState((s) => applyView(s, view, () => ++tradeId));

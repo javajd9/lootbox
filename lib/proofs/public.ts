@@ -10,6 +10,7 @@ import type { ProofPackage } from "./package";
 import type { LiveRecord } from "./verify-live";
 
 export async function liveDropProofs(id: string): Promise<{ drop: Drop; packages: ProofPackage[]; live: LiveRecord } | null> {
+  if (!dropConfig(id)) return null; // only listed drops have proof pages
   const db = serverDb();
   const { data: row } = check(
     await db.from("drops").select("id, title, status, goal_usd_cents, treasury_wallet, excluded_wallets, funded_tx").eq("id", id).maybeSingle(),

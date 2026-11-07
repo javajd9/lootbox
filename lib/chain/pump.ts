@@ -70,7 +70,7 @@ export function decodePool(data: Buffer): Pool {
 }
 
 export interface CreatorFees {
-  coin: boolean; // false: the mint isn't a pump.fun coin (e.g. the devnet test token)
+  coin: boolean; // false: the mint isn't a pump.fun coin
   graduated: boolean;
   creator?: string; // who pump.fun pays: must be the treasury
   pool?: Pool;

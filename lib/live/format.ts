@@ -14,5 +14,4 @@ export function feeLabel(t: { usd: number; tradeUsd?: number; side?: "buy" | "se
 // A coin's size in pixels: bigger fees, bigger coins, so whales stand out ($0 → 16px, $200+ → 40px).
 export const coinPx = (feeUsd: number) => Math.round(16 + Math.min(1, Math.log10(1 + Math.max(0, feeUsd)) / Math.log10(201)) * 24);
 
-export const txUrl = (signature: string, cluster: "devnet" | "mainnet-beta") =>
-  `https://solscan.io/tx/${signature}${cluster === "devnet" ? "?cluster=devnet" : ""}`;
+export const txUrl = (signature: string) => `https://solscan.io/tx/${signature}`;

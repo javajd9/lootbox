@@ -25,7 +25,7 @@ if (!mintArg) {
   process.exit(1);
 }
 const mint = new PublicKey(mintArg);
-const conn = connection("mainnet-beta");
+const conn = connection();
 // Any wallet holding some SOL, standing in for ops and the treasury. Default: a large exchange wallet.
 const wallet = new PublicKey(arg("wallet", "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM")!);
 const sol = (lamports: bigint | number) => `${(Number(lamports) / 1e9).toFixed(6)} SOL`;

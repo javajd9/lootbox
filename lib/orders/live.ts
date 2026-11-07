@@ -1,9 +1,8 @@
 // The real outside world for ./order and ./delivery: the private orders and claim_addresses
 // tables, Zinc, Reclaim's zkFetch, the public proofs table and the Solana memo.
 //
-// How an order is paid: on mainnet with PRIZE_WALLET_SECRET set, in USDC from the prize wallet, order
-// by order (Zinc's agent endpoint, ./x402); otherwise from a prepaid Zinc balance (ZINC_API_KEY),
-// which on devnet is always Zinc's sandbox.
+// How an order is paid: with PRIZE_WALLET_SECRET set, in USDC from the prize wallet, order by order
+// (Zinc's agent endpoint, ./x402); otherwise from a prepaid Zinc balance (ZINC_API_KEY).
 import { randomUUID } from "node:crypto";
 import { Keypair, type Connection } from "@solana/web3.js";
 import bs58 from "bs58";
@@ -31,7 +30,7 @@ async function zkProof(authHeader: string, url: string, facts: Fact[]): Promise<
   return new ReclaimClient(appId, secret).zkFetch(url, publicOptions as any, privateOptions as any, 2, 5_000);
 }
 
-export const zincPaidInUsdc = (env: Record<string, string | undefined> = process.env) => CLUSTER === "mainnet-beta" && Boolean(env.PRIZE_WALLET_SECRET);
+export const zincPaidInUsdc = (env: Record<string, string | undefined> = process.env) => Boolean(env.PRIZE_WALLET_SECRET);
 export const zincConfigured = (env: Record<string, string | undefined> = process.env) => zincPaidInUsdc(env) || Boolean(env.ZINC_API_KEY);
 
 // The prize wallet, which pays for orders. Checked against PRIZE_WALLET, where the prize money is sent.
@@ -87,10 +86,8 @@ const orderPath = (id: string) => `/orders/${encodeURIComponent(id)}`;
 
 function settings(): ZincSettings {
   const zinc = zincSettings();
-  // Devnet test drops only ever use Zinc's sandbox, so a test run can't buy anything for real.
-  if (CLUSTER === "devnet" && !isTestKey(zinc.apiKey) && process.env.ZINC_ALLOW_LIVE_ON_DEVNET !== "yes") {
-    throw new Error("devnet drops need a Zinc test key (zn_test_...), so test runs never spend real money");
-  }
+  // A sandbox order never ships, and its proof would say a real prize was ordered.
+  if (isTestKey(zinc.apiKey)) throw new Error("ZINC_API_KEY is a Zinc test key (zn_test_...), which never places a real order");
   return zinc;
 }
 

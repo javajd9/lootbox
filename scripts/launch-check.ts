@@ -1,4 +1,4 @@
-// The go / no-go before mainnet: reads .env, the chain, Shopify, Helius, the scheduler and the live
+// The go / no-go before launch: reads .env, the chain, Shopify, Helius, the scheduler and the live
 // site, and lists anything that would stop the first drop. Read only: it signs, sends and changes
 // nothing, and never prints a secret.
 //
@@ -11,7 +11,7 @@ import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import pg from "pg";
 import { bondingCurveAddress, decodeBondingCurve, poolAddress, PUMP_PROGRAM_ID } from "@/lib/chain/pump";
-import { CLUSTER, connection } from "@/lib/chain/solana";
+import { connection } from "@/lib/chain/solana";
 import { dropQueue } from "@/lib/engine/drops";
 import { orderCap, ZINC_ORDER_FEE_CENTS } from "@/lib/orders/price";
 import { quoteUsdc } from "@/lib/treasury/swap";
@@ -44,26 +44,19 @@ const keypair = (name: string) => {
     return undefined;
   }
 };
-const devnetKeys = new Set(
-  fs.existsSync(".keys")
-    ? fs
-        .readdirSync(".keys")
-        .filter((f) => f.startsWith("devnet-") && f.endsWith(".json"))
-        .flatMap((f) => {
-          try {
-            const raw = JSON.parse(fs.readFileSync(`.keys/${f}`, "utf8"));
-            return Array.isArray(raw) ? [Keypair.fromSecretKey(Uint8Array.from(raw)).publicKey.toBase58()] : raw.mint ? [String(raw.mint)] : [];
-          } catch {
-            return [];
-          }
-        })
-    : [],
+// The wallets npm run mainnet:wallets made, if it was run on this computer.
+const madeHere = new Set(
+  ["treasury", "prize", "ops"].flatMap((name) => {
+    try {
+      return [Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync(`.keys/mainnet-${name}.json`, "utf8")))).publicKey.toBase58()];
+    } catch {
+      return [];
+    }
+  }),
 );
 
 // --- Settings ---
 section("Settings (.env, copied to Vercel with npm run vercel:env)");
-if (CLUSTER === "mainnet-beta") ok("SOLANA_CLUSTER is mainnet-beta");
-else fail(`SOLANA_CLUSTER is ${env.SOLANA_CLUSTER || "unset"}; set it to mainnet-beta`);
 
 const required = [
   "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_DB_URL", "CRON_SECRET",
@@ -103,22 +96,21 @@ if (!prizeKey) fail("PRIZE_WALLET_SECRET isn't a base58 secret key (needed to pa
 else if (prize && !prizeKey.publicKey.equals(prize)) fail("PRIZE_WALLET_SECRET isn't the key for PRIZE_WALLET");
 const own = [treasury?.publicKey, ops?.publicKey, prize].filter((k): k is PublicKey => !!k).map((k) => k.toBase58());
 if (new Set(own).size !== own.length) fail("the treasury, prize and ops wallets must be three different wallets");
-const reused = own.filter((a) => devnetKeys.has(a));
-if (reused.length) warn(`${reused.length === 1 ? "one of these wallets is a devnet test wallet" : `${reused.length} of these wallets are devnet test wallets`} from .keys; fresh mainnet keys are safer`);
+if (!madeHere.size) warn("no .keys/mainnet-*.json here: make sure the wallets in .env are new ones made for launch (npm run mainnet:wallets)");
+else if (own.some((a) => !madeHere.has(a))) warn("the wallets in .env aren't the ones in .keys/mainnet-*.json");
 if (treasury && ops && prize) {
   console.log(`    treasury ${treasury.publicKey.toBase58()}\n    prize    ${prize.toBase58()}\n    ops      ${ops.publicKey.toBase58()}`);
 }
 
 // --- On-chain ---
 section("Solana mainnet");
-const conn = connection("mainnet-beta");
+const conn = connection();
 let mint: PublicKey | undefined;
 try {
   mint = new PublicKey(env.LOOT_MINT!.trim());
 } catch {
   fail("LOOT_MINT isn't an address");
 }
-if (mint && devnetKeys.has(mint.toBase58())) fail("LOOT_MINT is still the devnet test token");
 
 if (mint && treasury) {
   await attempt("read the $LOOT bonding curve", async () => {
@@ -146,13 +138,13 @@ if (ops) {
 
 // --- The first drop's prize ---
 section("DROP-001 prize");
-for (const c of dropQueue("mainnet-beta")) {
+for (const c of dropQueue()) {
   const cap = orderCap(c.prize, c.goalCents, ZINC_ORDER_FEE_CENTS);
   if (cap.ok) ok(`${c.id}: ${cap.lines.length} items, caps add up to $${(cap.maxPriceCents / 100).toFixed(2)} of the $${(c.goalCents / 100).toFixed(2)} pool (plus Zinc's $1)`);
   else fail(`${c.id}: ${cap.reason} (fill in each ASIN and maxPriceCents in lib/config/prizes.ts)`);
 }
 await attempt("quote the prize swap on Jupiter", async () => {
-  const goal = dropQueue("mainnet-beta")[0].goalCents;
+  const goal = dropQueue()[0].goalCents;
   const q = await quoteUsdc(goal);
   ok(`Jupiter quotes $${(goal / 100).toFixed(0)} USDC for ${(Number(q.inAmount) / LAMPORTS_PER_SOL).toFixed(3)} SOL right now`);
 });
@@ -209,7 +201,7 @@ if (env.HELIUS_API_KEY && mint) {
     else ok(`Helius sends this coin's trades to ${url}`);
     if (hook.authHeader !== undefined && hook.authHeader !== env.FEES_WEBHOOK_SECRET) fail("the webhook's auth header isn't FEES_WEBHOOK_SECRET");
     const stale = hooks.filter((h) => h !== hook && /getlootbox\.fun/.test(h.webhookURL));
-    if (stale.length) warn(`${stale.length} other Helius webhook(s) also point at getlootbox.fun (old devnet ones?)`);
+    if (stale.length) warn(`${stale.length} other Helius webhook(s) also point at getlootbox.fun: delete the old ones in the Helius dashboard`);
   });
 }
 
@@ -244,11 +236,11 @@ if (env.SUPABASE_DB_URL) {
 section(`The live site (${SITE}), after the Vercel redeploy`);
 await attempt("/api/live", async () => {
   const live = (await (await fetch(`${SITE}/api/live`, { cache: "no-store" })).json()) as { cluster: string; drop: { id: string; stage: string } | null; lastWinner: unknown };
-  if (live.cluster !== "mainnet-beta") return fail(`the site still runs on ${live.cluster}: set SOLANA_CLUSTER=mainnet-beta in Vercel and redeploy`);
+  if (live.cluster !== "mainnet-beta") return fail(`the site still runs the old ${live.cluster} code: push main so Vercel redeploys`);
   ok("the site runs on mainnet");
   if (live.drop?.id === "DROP-001") ok(`DROP-001 is ${live.drop.stage}`);
   else fail(`the homepage shows ${live.drop ? live.drop.id : "no drop"}, not DROP-001`);
-  if (live.lastWinner) warn("the homepage shows a past winner on mainnet; check it isn't a devnet test drop");
+  if (live.lastWinner) warn("the homepage shows a past winner, but DROP-001 is the first drop");
 });
 await attempt("/docs/addresses", async () => {
   const html = await (await fetch(`${SITE}/docs/addresses`, { cache: "no-store" })).text();

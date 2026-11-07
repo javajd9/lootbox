@@ -1,21 +1,21 @@
 // The Solana connection and the ops wallet: the published wallet that signs every proof
-// fingerprint and every randomness request. The cluster comes from SOLANA_CLUSTER.
+// fingerprint and every randomness request. LOOTBOX runs on Solana mainnet only.
 import { Connection, Keypair, TransactionMessage, VersionedTransaction, clusterApiUrl, type AddressLookupTableAccount, type Transaction, type TransactionInstruction } from "@solana/web3.js";
 import bs58 from "bs58";
 
-export type Cluster = "devnet" | "mainnet-beta";
-export const CLUSTER: Cluster = process.env.SOLANA_CLUSTER === "mainnet-beta" ? "mainnet-beta" : "devnet";
+// Named in every public record (the live feed, draws, proofs), so anyone checking knows which chain to read.
+export type Cluster = "mainnet-beta";
+export const CLUSTER: Cluster = "mainnet-beta";
 
 // Helius when its key is set (faster, and needed for reading every holder); Solana's public
 // endpoint otherwise.
-export function heliusUrl(cluster: Cluster = CLUSTER): string | null {
+export function heliusUrl(): string | null {
   const key = process.env.HELIUS_API_KEY;
-  return key ? `https://${cluster === "devnet" ? "devnet" : "mainnet"}.helius-rpc.com/?api-key=${key}` : null;
+  return key ? `https://mainnet.helius-rpc.com/?api-key=${key}` : null;
 }
 
-export function connection(cluster: Cluster = CLUSTER): Connection {
-  const url = (cluster === CLUSTER && process.env.SOLANA_RPC_URL) || heliusUrl(cluster) || clusterApiUrl(cluster);
-  return new Connection(url, "confirmed");
+export function connection(): Connection {
+  return new Connection(process.env.SOLANA_RPC_URL || heliusUrl() || clusterApiUrl(CLUSTER), "confirmed");
 }
 
 // Sends a transaction and checks its status every second until it's confirmed. Plain requests
@@ -55,6 +55,5 @@ export function opsWallet(secret = process.env.OPS_WALLET_SECRET): Keypair {
 }
 
 // Where anyone can look things up.
-const suffix = (cluster: Cluster) => (cluster === "devnet" ? "?cluster=devnet" : "");
-export const explorerTx = (sig: string, cluster = CLUSTER) => `https://solscan.io/tx/${sig}${suffix(cluster)}`;
-export const explorerAccount = (address: string, cluster = CLUSTER) => `https://solscan.io/account/${address}${suffix(cluster)}`;
+export const explorerTx = (sig: string) => `https://solscan.io/tx/${sig}`;
+export const explorerAccount = (address: string) => `https://solscan.io/account/${address}`;

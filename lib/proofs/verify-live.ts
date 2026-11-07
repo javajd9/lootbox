@@ -20,17 +20,17 @@ export interface LiveFacts {
   funded: { amount: string } | null; // the drop's funding fingerprint, if it checks out
 }
 
-const RPC: Record<Cluster, string> = { devnet: "https://api.devnet.solana.com", "mainnet-beta": "https://api.mainnet-beta.solana.com" };
+const RPC = "https://api.mainnet-beta.solana.com"; // Solana's own public endpoint, not LOOTBOX's
 const MEMO_PROGRAM = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 // Zinc's API, the only server an order or delivery proof may come from.
 const ZINC_HOST = "api.zinc.com";
 
-export const explorerTx = (cluster: Cluster, sig: string) => `https://solscan.io/tx/${sig}${cluster === "devnet" ? "?cluster=devnet" : ""}`;
+export const explorerTx = (sig: string) => `https://solscan.io/tx/${sig}`;
 
 // A LOOTBOX fingerprint (LOOTBOX|v1|<drop>|<kind>|<values…>) and who signed its transaction. Null
 // when the transaction isn't on-chain, failed, or carries no fingerprint; throws if Solana can't be reached.
-export async function readFingerprint(cluster: Cluster, sig: string) {
-  const res = await fetch(RPC[cluster], {
+export async function readFingerprint(sig: string) {
+  const res = await fetch(RPC, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getTransaction", params: [sig, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0, commitment: "confirmed" }] }),
@@ -49,7 +49,7 @@ export async function readFingerprint(cluster: Cluster, sig: string) {
 export async function loadLiveFacts(dropId: string, packages: ProofPackage[], live: LiveRecord): Promise<LiveFacts> {
   const ours = async (sig: string | null | undefined, kinds: string[]) => {
     if (!sig) return null;
-    const f = await readFingerprint(live.cluster, sig);
+    const f = await readFingerprint(sig);
     return f && f.dropId === dropId && kinds.includes(f.kind) && f.signers.includes(live.publisher) ? f : null;
   };
   const [anchored, funded, signed] = await Promise.all([

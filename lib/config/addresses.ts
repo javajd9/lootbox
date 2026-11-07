@@ -1,11 +1,9 @@
 // The addresses LOOTBOX publishes on /docs/addresses, read from the same settings the drop engine
-// runs on (lib/engine/live.ts), so the page can't drift from what the engine really uses.
-// Mainnet only: until the site switches over it runs on devnet, and test addresses on a
-// scam-check page would only confuse. Server only: two of these come from secret keys.
+// runs on (lib/engine/live.ts), so the page can't drift from what the engine really uses. Each is
+// left out until it's set. Server only: two of these come from secret keys.
 import { Keypair, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import { bondingCurveAddress, poolAddress } from "@/lib/chain/pump";
-import { CLUSTER } from "@/lib/chain/solana";
 
 export interface PublishedAddresses {
   token?: string;
@@ -33,8 +31,7 @@ const valid = (address?: string) => {
   }
 };
 
-export function publishedAddresses(env: Record<string, string | undefined> = process.env): PublishedAddresses | null {
-  if (CLUSTER !== "mainnet-beta") return null;
+export function publishedAddresses(env: Record<string, string | undefined> = process.env): PublishedAddresses {
   const token = valid(env.LOOT_MINT);
   const mint = token ? new PublicKey(token) : undefined;
   const own = {

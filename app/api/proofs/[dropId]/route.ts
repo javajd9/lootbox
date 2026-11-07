@@ -2,12 +2,13 @@
 // hash and compare it with the fingerprint on-chain (LOOTBOX|v1|<drop>|<kind>|<hash>).
 import { NextResponse } from "next/server";
 import { check, serverDb } from "@/lib/db";
+import { dropConfig } from "@/lib/engine/drops";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export async function GET(_req: Request, { params }: { params: { dropId: string } }) {
-  if (!/^[A-Z0-9-]{1,32}$/.test(params.dropId)) return NextResponse.json({ error: "unknown drop" }, { status: 404 });
+  if (!dropConfig(params.dropId)) return NextResponse.json({ error: "unknown drop" }, { status: 404 });
   try {
     const { data } = check(
       await serverDb().from("proofs").select("seq, type, package, package_hash, memo_tx, created_at").eq("drop_id", params.dropId).order("seq"),

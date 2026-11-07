@@ -1,7 +1,7 @@
 // Every holder of a token, read through Helius (getTokenAccounts), for snapshots.
 import { PublicKey } from "@solana/web3.js";
 import type { TokenAccount } from "@/lib/draws/snapshot";
-import { CLUSTER, heliusUrl, type Cluster } from "./solana";
+import { heliusUrl } from "./solana";
 
 // A wallet someone holds the key to. An address off the ed25519 curve belongs to a program (the
 // bonding curve, a liquidity pool, a vault): it can never sign a claim, so it never holds tickets.
@@ -18,8 +18,8 @@ interface HeliusPage {
   token_accounts: { owner: string; amount: number | string }[];
 }
 
-export async function readHolders(mint: string, cluster: Cluster = CLUSTER): Promise<TokenAccount[]> {
-  const url = heliusUrl(cluster);
+export async function readHolders(mint: string): Promise<TokenAccount[]> {
+  const url = heliusUrl();
   if (!url) throw new Error("HELIUS_API_KEY is not set");
   const accounts: TokenAccount[] = [];
   let cursor: string | undefined;

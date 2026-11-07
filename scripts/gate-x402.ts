@@ -35,7 +35,7 @@ if (!process.env.PRIZE_WALLET_SECRET) {
   process.exit(1);
 }
 const payer = Keypair.fromSecretKey(bs58.decode(process.env.PRIZE_WALLET_SECRET.trim()));
-const conn: Connection = connection("mainnet-beta");
+const conn: Connection = connection();
 const usd = (units: bigint) => `$${(Number(units) / 1e6).toFixed(2)}`;
 const held = await conn
   .getTokenAccountBalance(getAssociatedTokenAddressSync(new PublicKey(USDC.mint), payer.publicKey, true))
@@ -88,7 +88,7 @@ const keys: AgentKeys = {
 };
 fs.mkdirSync(".keys", { recursive: true });
 fs.writeFileSync(STATE_FILE, JSON.stringify({ idempotencyKey }));
-const zinc = agentZincClient({ baseUrl: "https://api.zinc.com", payer, conn, rpcUrl: process.env.SOLANA_RPC_URL || heliusUrl("mainnet-beta") || undefined, keys });
+const zinc = agentZincClient({ baseUrl: "https://api.zinc.com", payer, conn, rpcUrl: process.env.SOLANA_RPC_URL || heliusUrl() || undefined, keys });
 const placed = await zinc.createOrder(order);
 console.log(`${again ? "Same order back" : "Placed"}: ${placed.id}, status ${placed.status}`);
 for (let i = 0; i < 6; i++) {

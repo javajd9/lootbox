@@ -2,12 +2,13 @@
 // whitespace) is the fingerprint posted on Solana when it was taken (see /docs/reproduce).
 import { NextResponse } from "next/server";
 import { check, serverDb } from "@/lib/db";
+import { dropConfig } from "@/lib/engine/drops";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export async function GET(_req: Request, { params }: { params: { dropId: string; slot: string } }) {
-  if (!/^[A-Z0-9-]{1,32}$/.test(params.dropId) || !/^\d{1,15}$/.test(params.slot)) {
+  if (!dropConfig(params.dropId) || !/^\d{1,15}$/.test(params.slot)) {
     return NextResponse.json({ error: "unknown snapshot" }, { status: 404 });
   }
   try {

@@ -65,8 +65,8 @@ function runChecks(drop: Drop, packages: ProofPackage[], anchored: string[], liv
       : !facts
         ? { result: "checking" }
         : facts.funded
-          ? { result: "pass", note: `Fingerprinted on Solana: $${(parseInt(facts.funded.amount, 10) / 100).toFixed(2)} for this drop.`, href: explorerTx(record.cluster, fundedTx) }
-          : { result: "fail", note: "The funding transaction isn't on Solana with this drop's fingerprint.", href: explorerTx(record.cluster, fundedTx) };
+          ? { result: "pass", note: `Fingerprinted on Solana: $${(parseInt(facts.funded.amount, 10) / 100).toFixed(2)} for this drop.`, href: explorerTx(fundedTx) }
+          : { result: "fail", note: "The funding transaction isn't on Solana with this drop's fingerprint.", href: explorerTx(fundedTx) };
     ordered = zkCheck(order, facts);
     const missing = order ? record.products.filter((url) => !(order.revealed.products as unknown[] | undefined)?.includes(url)) : [];
     if (ordered.result === "pass" && missing.length) ordered = { result: "fail", note: `The proof doesn't show the locked product ${missing[0]}.` };
@@ -248,7 +248,7 @@ export function ProofChecks({ drop, packages, anchoredHashes, live }: { drop: Dr
                   </pre>
                   <p className="mt-2 break-all font-mono text-[11px] text-mute">sha256 {h}</p>
                   {live && memo && (
-                    <a href={explorerTx(live.cluster, memo)} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[11px] text-loot underline">
+                    <a href={explorerTx(memo)} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[11px] text-loot underline">
                       Its fingerprint on Solana
                     </a>
                   )}

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { HudSection } from "@/components/brand/Hud";
-import { CLUSTER } from "@/lib/chain/solana";
 import type { DropStatus } from "@/lib/data/types";
 import { shortWallet, usd } from "@/lib/live/format";
 import { dropSummaries, type DropSummary } from "@/lib/proofs/drops";
@@ -48,15 +47,11 @@ function DropRow({ d }: { d: DropSummary }) {
   );
 }
 
-export default async function ProofIndex({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
-  // Devnet drops are only listed with /proof?live, the same switch the homepage uses.
-  const listed = CLUSTER === "mainnet-beta" || searchParams.live !== undefined;
-  const drops = listed
-    ? await dropSummaries().catch((err) => {
-        console.error("proof index", err);
-        return null;
-      })
-    : [];
+export default async function ProofIndex() {
+  const drops = await dropSummaries().catch((err) => {
+    console.error("proof index", err);
+    return null;
+  });
 
   return (
     <HudSection index="04" label="The proof">
