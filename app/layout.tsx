@@ -18,10 +18,10 @@ const DESCRIPTION = "Hold $LOOT. Trading fees fund real prizes. Every drop is pu
 // The share card (app/opengraph-image.jpg) is picked up by Next on every page.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: { default: "LOOTBOX — Hold $LOOT, win real prizes. Don't trust. Check.", template: "%s — LOOTBOX" },
+  title: { default: "LOOTBOX", template: "%s — LOOTBOX" },
   description: DESCRIPTION,
-  openGraph: { type: "website", siteName: "LOOTBOX", title: "LOOTBOX — Hold $LOOT, win real prizes", description: DESCRIPTION },
-  twitter: { card: "summary_large_image", title: "LOOTBOX — Hold $LOOT, win real prizes", description: DESCRIPTION },
+  openGraph: { type: "website", siteName: "LOOTBOX", title: "LOOTBOX", description: DESCRIPTION },
+  twitter: { card: "summary_large_image", title: "LOOTBOX", description: DESCRIPTION },
 };
 
 const NAV = [
