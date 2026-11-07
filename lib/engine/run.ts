@@ -18,6 +18,7 @@ export interface TickReport {
 }
 
 const MAX_PASSES = 50;
+const FAILING_ALERT_MS = 10 * 60_000;
 
 export async function tick(store: EngineStore, effects: Effects, now = new Date(), rng = secureRandom): Promise<TickReport | undefined> {
   return store.withLock(async () => {
@@ -68,6 +69,29 @@ export async function tick(store: EngineStore, effects: Effects, now = new Date(
         await store.save(state); // after every step, so a finished step is never repeated
       }
       if (!moved) break;
+    }
+
+    // A failed step retries quietly next tick. One that keeps failing (say the ops wallet is out of
+    // SOL, or a key was revoked) is alerted once it has failed on every tick for 10 minutes.
+    const failing: Record<string, string> = {};
+    for (const e of errors) failing[e.what] ??= state.failingSince?.[e.what] ?? now.toISOString();
+    let sentAlerts = state.sentAlerts;
+    for (const [what, since] of Object.entries(failing)) {
+      const key = `failing:${what}:${since}`;
+      if (now.getTime() - Date.parse(since) < FAILING_ALERT_MS || sentAlerts.includes(key)) continue;
+      const error = errors.find((e) => e.what === what)!.error.replace(/api-key=[^&\s"']+/gi, "api-key=…");
+      try {
+        await effects.alert(`${what} has failed on every tick since ${since}: ${error}`);
+        sentAlerts = [...sentAlerts, key];
+      } catch (err) {
+        console.error("alert failed", err);
+      }
+    }
+    const before = state.failingSince ?? {};
+    const changed = sentAlerts !== state.sentAlerts || Object.keys(failing).length !== Object.keys(before).length || Object.keys(failing).some((k) => before[k] !== failing[k]);
+    if (changed) {
+      state = { ...state, failingSince: failing, sentAlerts };
+      await store.save(state);
     }
     return { steps, errors, poolCents: poolCents(state) };
   });

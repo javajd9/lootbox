@@ -48,11 +48,19 @@ const record = (c: DropConfig): DropRecord => ({
 export const initialState = (cluster: Cluster = CLUSTER): EngineState => ({ drops: dropQueue(cluster).map(record), treasuryCents: 0, sentAlerts: [] });
 
 // Adds newly listed drops to the saved state, after the ones it has. Never changes a known drop.
+// Drops from another network's queue are left out: the engine keeps one saved state, so when
+// SOLANA_CLUSTER switches to mainnet the devnet test drops would otherwise still be ticked there
+// (a redraw would request mainnet randomness for a test drop) and shown as past drops.
 export function withQueuedDrops(store: EngineStore, cluster: Cluster = CLUSTER): EngineStore {
+  const elsewhere = new Set(
+    (Object.keys(QUEUES) as Cluster[]).filter((c) => c !== cluster).flatMap((c) => QUEUES[c].map((d) => d.id)),
+  );
   return {
     ...store,
     async load() {
-      const state = await store.load();
+      const loaded = await store.load();
+      const drops = loaded.drops.filter((d) => !elsewhere.has(d.id));
+      const state = drops.length === loaded.drops.length ? loaded : { ...loaded, drops };
       const known = new Set(state.drops.map((d) => d.id));
       const added = dropQueue(cluster).filter((c) => !known.has(c.id)).map(record);
       return added.length ? { ...state, drops: [...state.drops, ...added] } : state;

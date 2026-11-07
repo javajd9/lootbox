@@ -42,6 +42,7 @@ export interface EngineState {
   uncollected?: { lamports: number; cents: number };
   poolReadAt?: string; // when the treasury and the uncollected fees were last read
   sentAlerts: string[]; // so each alert goes out once
+  failingSince?: Record<string, string>; // each step failing on every tick (e.g. "DROP-001 snapshot"), since when
 }
 
 export type Effect =

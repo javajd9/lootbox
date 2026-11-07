@@ -23,7 +23,9 @@ function env(name: string): string {
 const key = env("HELIUS_API_KEY");
 const mint = new PublicKey(env("LOOT_MINT"));
 const secret = env("FEES_WEBHOOK_SECRET");
-const url = process.env.FEES_WEBHOOK_URL || "https://getlootbox.fun/api/fees";
+// www: the bare domain answers with a redirect to it, which a webhook delivery may not follow, and
+// a redirect to another host drops the Authorization header the route checks.
+const url = process.env.FEES_WEBHOOK_URL || "https://www.getlootbox.fun/api/fees";
 const apply = process.argv.includes("--apply");
 
 const config = {

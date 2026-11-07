@@ -25,7 +25,8 @@
     "devnet:holder": "tsx scripts/devnet-holder.ts",
     "helius:webhook": "tsx scripts/helius-webhook.ts",
     "fees:simulate": "tsx scripts/fees-simulate.ts",
-    "mainnet:fees-check": "tsx scripts/mainnet-fees-check.ts"
+    "mainnet:fees-check": "tsx scripts/mainnet-fees-check.ts",
+    "launch:check": "tsx scripts/launch-check.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
