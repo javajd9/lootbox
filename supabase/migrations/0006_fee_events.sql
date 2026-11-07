@@ -2,7 +2,7 @@
 -- /api/fees from Helius webhooks; the homepage drops a coin for each one.
 create table fee_events (
   signature text primary key,                -- the trade's transaction; Helius may send it twice
-  cluster text not null,                     -- devnet or mainnet-beta
+  cluster text not null,                     -- the Solana network: mainnet-beta
   slot bigint not null,
   at timestamptz not null,                   -- the block's time
   venue text not null check (venue in ('curve', 'pool')),

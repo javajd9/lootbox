@@ -17,7 +17,7 @@ const NOW = Date.parse("2026-11-01T12:00:00Z");
 const DEADLINE = "2026-11-14T12:00:00Z";
 
 const drop = (over: Partial<DropRecord> = {}): DropRecord => ({
-  id: "DEV-001",
+  id: "DROP-001",
   goalCents: 1000,
   stage: "claiming",
   snapshotsTaken: 3,
@@ -45,8 +45,8 @@ describe("who can claim", () => {
   });
 
   it("the signed message is only accepted from the winning wallet's key", () => {
-    const c = newClaim("DEV-001", wallet, NOW);
-    expect(c.message).toContain("Drop: DEV-001");
+    const c = newClaim("DROP-001", wallet, NOW);
+    expect(c.message).toContain("Drop: DROP-001");
     expect(c.message).toContain(`Wallet: ${wallet}`);
     const sig = bs58.encode(nacl.sign.detached(new TextEncoder().encode(c.message), winner.secretKey));
     expect(verifyClaimSignature(c, sig, NOW)).toEqual({ ok: true });
@@ -78,7 +78,7 @@ describe("Shopify order", () => {
   const order: ShopifyOrder = {
     id: 820982911946154500,
     note_attributes: [
-      { name: "lootbox_drop", value: "DEV-001" },
+      { name: "lootbox_drop", value: "DROP-001" },
       { name: "lootbox_claim", value: "abc123" },
     ],
     shipping_address: {
@@ -132,16 +132,16 @@ describe("address fingerprint", () => {
 
   it("goes on-chain in the standard memo format, with no address in it", () => {
     const c = makeCommitment(a);
-    const memo = fingerprintMemo("DEV-001", "address", c.commitment);
-    expect(memo).toBe(`LOOTBOX|v1|DEV-001|address|${c.commitment}`);
-    expect(parseFingerprint(memo)).toEqual({ dropId: "DEV-001", kind: "address", values: [c.commitment] });
+    const memo = fingerprintMemo("DROP-001", "address", c.commitment);
+    expect(memo).toBe(`LOOTBOX|v1|DROP-001|address|${c.commitment}`);
+    expect(parseFingerprint(memo)).toEqual({ dropId: "DROP-001", kind: "address", values: [c.commitment] });
     expect(memo).not.toMatch(/MAIN|AUSTIN|78701/i);
   });
 });
 
 describe("the engine reads finished claims", () => {
   const state = (d: DropRecord): EngineState => ({ drops: [d], treasuryCents: 0, sentAlerts: [] });
-  const done = { drop_id: "DEV-001", wallet, round: 1, completed_at: "2026-11-02T09:00:00Z" };
+  const done = { drop_id: "DROP-001", wallet, round: 1, completed_at: "2026-11-02T09:00:00Z" };
 
   it("marks the drop claimed, so the next step is ordering the prize", () => {
     const next = withClaims(state(drop()), [done]);
@@ -155,7 +155,7 @@ describe("the engine reads finished claims", () => {
     expect(withClaims(s, [{ ...done, round: 0 }])).toBe(s);
     expect(withClaims(s, [{ ...done, completed_at: DEADLINE }])).toBe(s);
     expect(withClaims(s, [{ ...done, completed_at: null }])).toBe(s);
-    expect(withClaims(s, [{ ...done, drop_id: "DEV-002" }])).toBe(s);
+    expect(withClaims(s, [{ ...done, drop_id: "DROP-002" }])).toBe(s);
   });
 
   it("never changes a drop that was already claimed or redrawn", () => {

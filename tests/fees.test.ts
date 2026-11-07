@@ -7,7 +7,7 @@ import { decide, poolCents } from "../lib/engine/decide";
 import { memoryStore, tick } from "../lib/engine/run";
 import type { DropRecord, Effects, EngineState } from "../lib/engine/types";
 import { isHeliusPayload, parseFeeEvents } from "../lib/fees/events";
-import { randomSignature, sampleTx, type SampleTrade } from "../lib/fees/sample";
+import { randomSignature, sampleTx, type SampleTrade } from "./sample-trades";
 import { applyView } from "../lib/live/fromView";
 import { coinPx, feeLabel } from "../lib/live/format";
 import type { LiveDrop } from "../lib/live/useLiveDrop";
@@ -76,7 +76,7 @@ describe("creator fees on pump.fun", () => {
     expect(fees).toMatchObject({ coin: true, graduated: true, curveWaiting: 1_000n, curveVault: 20_000n, poolWaiting: 300_000n, poolVault: 4_000_000n, total: 4_321_000n });
   });
 
-  it("finds nothing for a token that isn't a pump.fun coin (the devnet test token)", async () => {
+  it("finds nothing for a token that isn't a pump.fun coin (a plain SPL token)", async () => {
     const fees = await readCreatorFees(chain(new Map()), mint, treasury);
     expect(fees).toMatchObject({ coin: false, total: 0n });
   });
@@ -201,7 +201,7 @@ describe("fee events from a Helius webhook", () => {
     ...extra,
   });
 
-  it("reads made-up trades the same way (what npm run fees:simulate sends)", () => {
+  it("reads made-up trades the same way, shaped as Helius sends them", () => {
     const pool = poolAddress(mint).toBase58();
     const events = parseFeeEvents([sampleTx(trade()), sampleTx(trade({ pool, side: "sell", feeLamports: 9 }))], mint.toBase58(), pool);
     expect(events.map((e) => [e.venue, e.side, e.feeLamports, e.tradeLamports])).toEqual([

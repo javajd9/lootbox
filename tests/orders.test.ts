@@ -29,7 +29,7 @@ const ADDRESS: ShippingAddress = {
 const item = (extra: Partial<PrizeItem> = {}): PrizeItem => ({ name: "Test item", url: TEST_URL, quantity: 1, maxPriceCents: 500, ...extra });
 
 const claimed = (extra: Partial<DropRecord> = {}): DropRecord => ({
-  id: "DEV-003",
+  id: "DROP-003",
   goalCents: 1_000,
   stage: "claiming",
   snapshotsTaken: 3,
@@ -127,7 +127,7 @@ function fakeDeps(over: Partial<OrderDeps> = {}) {
   const memos: string[] = [];
   const proofs: { revealed: Record<string, unknown>; proof: unknown; hash: string }[] = [];
   let keys = 0;
-  const config: DropConfig = { id: "DEV-003", number: 3, title: "Devnet test drop", goalCents: 1_000, prize: [item()] };
+  const config: DropConfig = { id: "DROP-003", number: 3, title: "Test drop", goalCents: 1_000, prize: [item()] };
   const deps: OrderDeps = {
     config: (id) => (id === config.id ? config : undefined),
     winner: async () => ({ claimId: "claim-1", address: ADDRESS, email: "jordan.testperson@example.com" }),
@@ -200,7 +200,7 @@ describe("orders: never two orders for one drop", () => {
     expect(await orderStep(claimed({ round: 2 }), f.deps)).toMatchObject({ waiting: expect.any(String) }); // even after a redraw
     expect(f.z.creates).toBe(1);
     expect(f.z.orders.size).toBe(1);
-    expect(f.rows.get("DEV-003")).toMatchObject({ idempotency_key: "key-1", zinc_status: "pending", claim_id: "claim-1" });
+    expect(f.rows.get("DROP-003")).toMatchObject({ idempotency_key: "key-1", zinc_status: "pending", claim_id: "claim-1" });
   });
 
   it("re-sends the same key after a crash, and Zinc's refusal leads back to the one order", async () => {
@@ -215,11 +215,11 @@ describe("orders: never two orders for one drop", () => {
       return update(id, patch);
     };
     await expect(orderStep(claimed(), f.deps)).rejects.toThrow("database went away");
-    expect(f.rows.get("DEV-003")!.zinc_request_id).toBeNull();
+    expect(f.rows.get("DROP-003")!.zinc_request_id).toBeNull();
     await orderStep(claimed(), f.deps);
     expect(f.z.creates).toBe(2); // asked twice, with the same key...
     expect(f.z.orders.size).toBe(1); // ...and still one order
-    expect(f.rows.get("DEV-003")!.zinc_request_id).toBe([...f.z.orders.keys()][0]);
+    expect(f.rows.get("DROP-003")!.zinc_request_id).toBe([...f.z.orders.keys()][0]);
   });
 
   it("never re-orders a failed order; a human has to look", async () => {
@@ -238,8 +238,8 @@ describe("orders: never two orders for one drop", () => {
     };
     const r = await orderStep(claimed(), f.deps);
     expect(r).toEqual({ ok: false, reason: "Zinc refused the order (invalid_shipping_address)" });
-    expect(f.rows.get("DEV-003")).toMatchObject({ status: "failed", error: "invalid_shipping_address" });
-    expect(findPII(JSON.stringify([r, f.rows.get("DEV-003")]), winnerPII(ADDRESS))).toEqual([]);
+    expect(f.rows.get("DROP-003")).toMatchObject({ status: "failed", error: "invalid_shipping_address" });
+    expect(findPII(JSON.stringify([r, f.rows.get("DROP-003")]), winnerPII(ADDRESS))).toEqual([]);
   });
 
   it("tries again next tick when Zinc is down, without marking the order failed", async () => {
@@ -248,7 +248,7 @@ describe("orders: never two orders for one drop", () => {
       throw new ZincError(503, "service_unavailable", "try later");
     };
     await expect(orderStep(claimed(), f.deps)).rejects.toThrow("service_unavailable");
-    expect(f.rows.get("DEV-003")!.status).toBe("pending");
+    expect(f.rows.get("DROP-003")!.status).toBe("pending");
   });
 });
 
@@ -258,8 +258,8 @@ describe("orders: nothing personal in a proof", () => {
     max_price: 500,
     shipping_address: zincAddress(ADDRESS).ok ? (zincAddress(ADDRESS) as any).value : null,
     idempotency_key: "k",
-    metadata: { lootbox_drop: "DEV-003" },
-    po_number: "DEV-003",
+    metadata: { lootbox_drop: "DROP-003" },
+    po_number: "DROP-003",
   };
   const order = zincOrder("3f1c9a52-8d2e-4b7a-9c1f-2a6e5d4b8f10", req, "order_placed");
   const full = JSON.stringify(order, null, 2);
@@ -340,11 +340,11 @@ describe("orders: in the engine", () => {
   });
 
   it("alerts once if the order still isn't placed a day after the claim", () => {
-    const state: EngineState = { drops: [claimed()], treasuryCents: 0, sentAlerts: ["no-next-drop:DEV-003"] };
+    const state: EngineState = { drops: [claimed()], treasuryCents: 0, sentAlerts: ["no-next-drop:DROP-003"] };
     expect(decide(state, new Date(NOW.getTime() + HOUR)).map((s) => s.effect.type)).toEqual(["placeOrder"]);
     const late = decide(state, new Date(NOW.getTime() + 25 * HOUR));
     expect(late.map((s) => s.effect.type)).toContain("alert");
-    expect(decide({ ...state, sentAlerts: [...state.sentAlerts, "slow-order:DEV-003"] },new Date(NOW.getTime() + 25 * HOUR)).map((s) => s.effect.type)).not.toContain("alert");
+    expect(decide({ ...state, sentAlerts: [...state.sentAlerts, "slow-order:DROP-003"] },new Date(NOW.getTime() + 25 * HOUR)).map((s) => s.effect.type)).not.toContain("alert");
   });
 
   it("a mocked run: claimed -> ordered -> proof saved -> memo posted -> fulfilling", async () => {
@@ -372,9 +372,9 @@ describe("orders: in the engine", () => {
     expect(d).toMatchObject({ stage: "fulfilling", orderedAt: new Date(NOW.getTime() + 3 * 60_000).toISOString() });
     expect(f.z.creates).toBe(1);
     expect(f.proofs).toHaveLength(1);
-    expect(f.memos).toEqual([`LOOTBOX|v1|DEV-003|ordered|${f.proofs[0].hash}`]);
-    expect(parseFingerprint(f.memos[0])).toEqual({ dropId: "DEV-003", kind: "ordered", values: [f.proofs[0].hash] });
-    expect(f.rows.get("DEV-003")).toMatchObject({ status: "placed", total_cents: 432, proof_hash: f.proofs[0].hash, memo_tx: "memo-tx-1" });
+    expect(f.memos).toEqual([`LOOTBOX|v1|DROP-003|ordered|${f.proofs[0].hash}`]);
+    expect(parseFingerprint(f.memos[0])).toEqual({ dropId: "DROP-003", kind: "ordered", values: [f.proofs[0].hash] });
+    expect(f.rows.get("DROP-003")).toMatchObject({ status: "placed", total_cents: 432, proof_hash: f.proofs[0].hash, memo_tx: "memo-tx-1" });
 
     // Later ticks leave it alone: fulfilling waits for delivery.
     await tick(store, effects, new Date(NOW.getTime() + 4 * 60_000));

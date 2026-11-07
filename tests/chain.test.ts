@@ -37,14 +37,14 @@ describe("draw seeds", () => {
 
 describe("never paying a drop twice", () => {
   it("spots the drop's own funded fingerprint in a transaction's memo field", () => {
-    const funded = `[60] ${fingerprintMemo("DEV-002", "funded", "1000c", "106262338lamports", "94.1067usd")}`;
-    expect(isFundingMemo(funded, "DEV-002")).toBe(true);
-    expect(isFundingMemo(`[12] something else; ${funded}`, "DEV-002")).toBe(true);
+    const funded = `[60] ${fingerprintMemo("DROP-002", "funded", "1000c", "106262338lamports", "94.1067usd")}`;
+    expect(isFundingMemo(funded, "DROP-002")).toBe(true);
+    expect(isFundingMemo(`[12] something else; ${funded}`, "DROP-002")).toBe(true);
   });
 
   it("ignores other drops, other steps, and transactions without a memo", () => {
-    expect(isFundingMemo(`[60] ${fingerprintMemo("DEV-001", "funded", "1000c")}`, "DEV-002")).toBe(false);
-    expect(isFundingMemo(`[80] ${fingerprintMemo("DEV-002", "tickets", "ab12")}`, "DEV-002")).toBe(false);
-    expect(isFundingMemo(null, "DEV-002")).toBe(false);
+    expect(isFundingMemo(`[60] ${fingerprintMemo("DROP-001", "funded", "1000c")}`, "DROP-002")).toBe(false);
+    expect(isFundingMemo(`[80] ${fingerprintMemo("DROP-002", "tickets", "ab12")}`, "DROP-002")).toBe(false);
+    expect(isFundingMemo(null, "DROP-002")).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 // Fee events, kept in Supabase's public `fee_events` table (server only: it uses the service role key).
-// Each row names its chain, and only mainnet rows are read, so trades simulated before launch never show.
+// Each row names its chain (mainnet-beta), and only those rows are read.
 import { CLUSTER } from "@/lib/chain/solana";
 import { check, serverDb } from "@/lib/db";
 import type { LiveFee } from "@/lib/live/view";

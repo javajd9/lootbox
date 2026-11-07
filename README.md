@@ -31,16 +31,30 @@
 
 <br>
 
-## Live now
+## Live on Solana
 
-LOOTBOX is built and running at **[getlootbox.fun](https://www.getlootbox.fun)**. This repository is the code behind it: the website, the drop engine, the draw, claims, ordering and the proof publisher. The live site is deployed straight from `main`.
+LOOTBOX runs at **[getlootbox.fun](https://www.getlootbox.fun)**, on Solana mainnet. This repository is the code behind it: the website, the drop engine, the draw, claims, ordering and the proof publisher. The live site is deployed straight from `main`.
 
 | | |
 |---|---|
-| **Website** | Live, with the current drop, your ticket count and every drop's proofs |
-| **Drop engine** | Running on Solana mainnet, checking every drop once a minute |
-| **Drop 001** | GTA VI Bundle: PS5 Pro, OLED monitor and GTA VI, with a $2,000 prize pool |
+| **Website** | The live prize pool, a coin for every trade, your ticket count, and every drop's proofs |
+| **Drop engine** | Runs on its own, checking every drop once a minute |
 | **Docs** | The full rules in plain language at [getlootbox.fun/docs](https://www.getlootbox.fun/docs) |
+
+## Drop after drop
+
+LOOTBOX isn't a one-off giveaway. It's a queue of drops, and every $LOOT trade keeps it moving.
+
+| Drop | Prize | Prize pool |
+|:-:|---|---|
+| **001** | GTA VI Bundle: PS5 Pro, OLED monitor and GTA VI | $2,000 |
+| **002** | Mystery Drop | $2,000 |
+| **003 →** | Added to the queue as the drops ahead of it run | |
+
+- **The next drop opens the moment the last one is drawn.** Nobody signs up again: keep holding $LOOT and you're in every drop.
+- **Nothing is wasted between drops.** If a pool runs past its goal before the draw, the extra rolls into the next drop's pool.
+- **Nobody has to run it.** Every minute the engine does whatever is due, from snapshots to the draw to the order, and after a crash or a slow reply it picks up where it stopped.
+- **Every drop stays on the record.** Each one keeps its proof page, and its fingerprints stay on Solana, so the history only grows.
 
 ## How a drop works
 
@@ -92,6 +106,7 @@ You don't have to take the docs' word for it. These are the files that decide wh
 
 | To check | Read |
 |---|---|
+| The drop queue, and what each prize is | [`lib/engine/drops.ts`](lib/engine/drops.ts), [`lib/config/prizes.ts`](lib/config/prizes.ts) |
 | How holdings become tickets | [`lib/draws/tickets.ts`](lib/draws/tickets.ts), [`lib/draws/snapshot.ts`](lib/draws/snapshot.ts) |
 | Why nobody knows when a snapshot will happen | [`lib/engine/schedule.ts`](lib/engine/schedule.ts) |
 | The engine's rules: when each step of a drop is due | [`lib/engine/decide.ts`](lib/engine/decide.ts), [`lib/engine/run.ts`](lib/engine/run.ts) |

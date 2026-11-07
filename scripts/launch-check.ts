@@ -138,12 +138,16 @@ if (ops) {
 }
 
 // --- The first drop's prize ---
-section("DROP-001 prize");
-for (const c of dropQueue()) {
+section("Prizes");
+// The first drop's prize must be set now; a later drop's only before its own pool fills.
+dropQueue().forEach((c, i) => {
   const cap = orderCap(c.prize, c.goalCents, ZINC_ORDER_FEE_CENTS);
   if (cap.ok) ok(`${c.id}: ${cap.lines.length} items, caps add up to $${(cap.maxPriceCents / 100).toFixed(2)} of the $${(c.goalCents / 100).toFixed(2)} pool (plus Zinc's $1)`);
-  else fail(`${c.id}: ${cap.reason} (fill in each ASIN and maxPriceCents in lib/config/prizes.ts)`);
-}
+  else if (i === 0) fail(`${c.id}: ${cap.reason} (fill in each ASIN and maxPriceCents in lib/config/prizes.ts)`);
+  else warn(`${c.id} (${c.title}): ${cap.reason}. Set it before its pool fills (lib/config/prizes.ts)`);
+});
+const queued = dropQueue();
+ok(`${queued.length} drops queued: ${queued.map((c) => `${c.id} ${c.title}`).join(", ")}`);
 await attempt("quote the prize swap on Jupiter", async () => {
   const goal = dropQueue()[0].goalCents;
   const q = await quoteUsdc(goal);

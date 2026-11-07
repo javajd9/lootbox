@@ -1,9 +1,9 @@
 // Made-up trades, shaped exactly like what Helius sends for a real one (a "raw" webhook: the
-// getTransaction JSON). For tests only, never for anything that counts.
+// getTransaction JSON), for the tests.
 import { randomBytes } from "node:crypto";
 import bs58 from "bs58";
 import { PUMP_AMM_PROGRAM_ID, PUMP_PROGRAM_ID } from "@/lib/chain/pump";
-import { EVENT_DISCRIMINATORS } from "./events";
+import { EVENT_DISCRIMINATORS } from "@/lib/fees/events";
 
 export interface SampleTrade {
   mint: string;

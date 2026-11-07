@@ -1,4 +1,4 @@
-// Shared by the server (mock data) and the client (live stage + proof ledger).
+// Shared by the server (the drop list in lib/data) and the client (live stage + proof ledger).
 
 // Every drop walks through these steps, in this order; each one is backed by a proof. Funded and
 // Paid happen together, the moment the pool fills (see /docs/proofs).
