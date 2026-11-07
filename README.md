@@ -71,22 +71,44 @@ The [proof page](https://www.getlootbox.fun/proof) re-runs these checks in your 
 
 **Privacy.** The winner's name, address, phone and email are never published. Only a salted fingerprint of the address goes on-chain, and only the winner can check it. LOOTBOX keeps the address privately until the prize arrives, then deletes it.
 
-## Read the code that matters
+## How it's built
 
-You don't have to take the docs' word for it. These are the files that decide who wins and what gets published.
+LOOTBOX is one Next.js app on Vercel: the website, the docs, the proof pages and the drop engine. Every minute a scheduler wakes the engine, which looks at every drop, does whatever step is due, and saves. Steps that wait on outside services, like buying and shipping the prize, move forward one small step per tick and save as they go, so after a crash or a slow reply the next tick picks up where the last one stopped.
+
+| Piece | What LOOTBOX uses it for |
+|---|---|
+| **Solana** | The treasury, the locked ticket list, the draw, and a Memo for every proof fingerprint |
+| **pump.fun** | $LOOT is a pump.fun coin created from the treasury wallet, so every trade pays the treasury a creator fee |
+| **Helius** | Sends every $LOOT trade to the site, and reads every holder's balance for snapshots |
+| **ORAO VRF** | The randomness for each draw, with a proof that's checked on-chain |
+| **Jupiter** | On mainnet, swaps the prize's worth of SOL to USDC the moment the pool fills |
+| **Shopify** | A $0 checkout where the winner enters their address, so it never passes through LOOTBOX's site |
+| **Zinc** | Buys the prize from the retailer and follows it to the winner's door |
+| **Reclaim zkFetch** | zkTLS proofs of Zinc's order and tracking records |
+| **Supabase** | The engine's state, and the private table that holds the winner's address until it's deleted |
+
+## Read the code
+
+You don't have to take the docs' word for it. These are the files that decide who wins and what gets published, in the order a drop uses them.
 
 | To check | Read |
 |---|---|
 | How holdings become tickets | [`lib/draws/tickets.ts`](lib/draws/tickets.ts), [`lib/draws/snapshot.ts`](lib/draws/snapshot.ts) |
+| Why nobody knows when a snapshot will happen | [`lib/engine/schedule.ts`](lib/engine/schedule.ts) |
+| The engine's rules: when each step of a drop is due | [`lib/engine/decide.ts`](lib/engine/decide.ts), [`lib/engine/run.ts`](lib/engine/run.ts) |
+| How fees reach the treasury and the prize is funded | [`lib/treasury/`](lib/treasury) |
+| Why a draw's randomness can't be re-rolled | [`lib/chain/vrf.ts`](lib/chain/vrf.ts) |
 | How the VRF result picks one ticket | [`lib/draws/weighted-pick.ts`](lib/draws/weighted-pick.ts) |
-| The engine's rules: when each step of a drop is due | [`lib/engine/decide.ts`](lib/engine/decide.ts) |
+| How a winner proves they own the wallet | [`lib/claims/claims.ts`](lib/claims/claims.ts) |
+| How the address fingerprint is made | [`lib/proofs/commitment.ts`](lib/proofs/commitment.ts) |
+| How the prize is ordered and tracked | [`lib/orders/order.ts`](lib/orders/order.ts), [`lib/orders/delivery.ts`](lib/orders/delivery.ts) |
 | What each order proof reveals and hides | [`lib/orders/redact.ts`](lib/orders/redact.ts) |
-| How proofs are chained and fingerprinted | [`lib/proofs/package.ts`](lib/proofs/package.ts) |
 | The guard that stops an address leaking into a proof | [`lib/proofs/pii-guard.ts`](lib/proofs/pii-guard.ts) |
+| How proofs are chained and fingerprinted | [`lib/proofs/package.ts`](lib/proofs/package.ts), [`lib/chain/memo.ts`](lib/chain/memo.ts) |
 | The checks the proof page runs in your browser | [`lib/proofs/verify-live.ts`](lib/proofs/verify-live.ts) |
-| How fees are collected and swapped | [`lib/treasury/`](lib/treasury) |
+| The database tables | [`supabase/migrations/`](supabase/migrations) |
 
-Working on the code itself? See [DEVELOPMENT.md](DEVELOPMENT.md).
+Every page and API route is under [`app/`](app).
 
 <br>
 
