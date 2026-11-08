@@ -1,6 +1,6 @@
 {
   "name": "lootbox",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,8 +9,6 @@
     "start": "next start",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "gate:zinc": "tsx scripts/gate-zinc.ts",
-    "gate:zkfetch": "tsx scripts/gate-zkfetch.ts",
     "gate:x402": "tsx scripts/gate-x402.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:check": "tsx scripts/db-check.ts",
