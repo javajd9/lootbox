@@ -263,7 +263,7 @@ export function HeroTicket({ prizes, links }: { prizes: Record<string, PrizeItem
         <HeaderPool phase={phase} number={drop.number} title={drop.title} pct={pct} funded={fundedUsd} goal={drop.goalUsd} />
       )}
 
-      <div className="hero-ticket relative z-30 grid min-h-[inherit] place-items-center py-6 lg:h-full">
+      <div className="hero-ticket relative z-30 grid min-h-[inherit] grid-cols-1 place-items-center py-6 lg:h-full">
         <div className="frame relative">
           {/* backlight: the ticket glows from behind, brighter as the pool fills */}
           <div
@@ -274,9 +274,10 @@ export function HeroTicket({ prizes, links }: { prizes: Record<string, PrizeItem
             <div className="h-full w-full animate-breathe rounded-[48px] bg-loot/40 blur-[80px] motion-reduce:animate-none" />
           </div>
           <div className="ticket-float">
+            {/* max-w-full (and grid-cols-1 on the hero): the aspect ratio and min height together would force 1188px, past the edge of smaller laptops */}
             <div
               ref={cardRef}
-              className="ticket ticket-paper relative grid text-ink max-lg:min-h-[66svh] max-lg:grid-rows-[auto_var(--stub)] lg:aspect-[2.2/1] lg:min-h-[540px] lg:grid-cols-[minmax(0,1fr)_var(--stub)]"
+              className="ticket ticket-paper relative grid max-w-full text-ink max-lg:min-h-[66svh] max-lg:grid-rows-[auto_var(--stub)] lg:aspect-[2.2/1] lg:min-h-[540px] lg:grid-cols-[minmax(0,1fr)_var(--stub)]"
             >
               {/* main part of the ticket */}
               <div ref={innerRef} className="relative flex min-w-0 flex-col justify-between gap-8 p-6 sm:p-9 lg:p-11">
