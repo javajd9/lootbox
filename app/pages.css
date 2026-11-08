@@ -28,6 +28,11 @@
 .vignette {
   background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
 }
+/* The docs sidebar's scrollbar: slim and on the page's colours, not the browser's default grey bar. */
+.docs-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: theme("colors.line") transparent;
+}
 .vignette-light {
   background: radial-gradient(ellipse at center, transparent 45%, rgba(14, 14, 16, 0.18) 100%);
 }

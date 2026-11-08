@@ -47,7 +47,7 @@ function Links({ onNavigate }: { onNavigate?: () => void }) {
 
 export function DocsSidebar() {
   return (
-    <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] w-60 shrink-0 overflow-y-auto pb-10 lg:block">
+    <aside className="docs-scroll sticky top-20 hidden h-[calc(100vh-6rem)] w-60 shrink-0 overflow-y-auto pb-10 lg:block">
       <Links />
     </aside>
   );
