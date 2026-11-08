@@ -1,19 +1,21 @@
 // Turns product photos on white / fake-checkerboard backgrounds into transparent WebPs for the site.
 // The background is flood-filled from the image edges inward, so light areas *inside* a product
 // (like the PS5's white panels) are kept. Edge pixels get a soft alpha so cutouts don't look jagged.
-// Usage: node scripts/cutout.mjs
+// Usage: node scripts/cutout.mjs [name]   (a name, like "ps5", redoes only the matching job)
 import sharp from "sharp";
 
 const JOBS = [
   // minLight: how bright a pixel must be to count as background; maxChroma: how gray it must be.
+  // minSpeck: islands of product smaller than this many pixels are background (JPEG noise on white).
   { src: "assets/prizes-src/oled-monitor.jpg", out: "public/prizes/oled-monitor.webp", minLight: 214, maxChroma: 16 },
-  { src: "assets/prizes-src/ps5-pro.webp", out: "public/prizes/ps5-pro.webp", minLight: 247, maxChroma: 8 },
+  { src: "assets/prizes-src/ps5.jpg", out: "public/prizes/ps5.webp", minLight: 247, maxChroma: 8, minSpeck: 80 },
   // Box art is a solid rectangle with a white header band that touches the margin, so a flood fill
   // would eat it. Just crop the white margin instead.
   { src: "assets/prizes-src/gta6.webp", out: "public/prizes/gta6.webp", crop: true },
 ];
 
-for (const job of JOBS) {
+const only = process.argv[2];
+for (const job of JOBS.filter((j) => !only || j.out.includes(only))) {
   if (job.crop) {
     await sharp(job.src)
       .trim({ background: "#ffffff", threshold: 40 })
@@ -50,6 +52,23 @@ for (const job of JOBS) {
     if (x < w - 1) seed(x + 1, y);
     if (y > 0) seed(x, y - 1);
     if (y < h - 1) seed(x, y + 1);
+  }
+
+  if (job.minSpeck) {
+    const seen = new Uint8Array(w * h);
+    for (let start = 0; start < w * h; start++) {
+      if (bg[start] || seen[start]) continue;
+      const island = [start];
+      seen[start] = 1;
+      for (let k = 0; k < island.length; k++) {
+        const i = island[k];
+        const x = i % w;
+        for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w]) {
+          if (j >= 0 && j < w * h && !bg[j] && !seen[j]) (seen[j] = 1), island.push(j);
+        }
+      }
+      if (island.length < job.minSpeck) for (const i of island) bg[i] = 1;
+    }
   }
 
   // Remove background; soften the 1px rim next to it based on how light it is.
