@@ -20,7 +20,7 @@ export interface DropConfig {
 // the last one collected past its goal. Its prize is set before its pool fills; until then an order
 // for it would wait on a hold. Queue the next drop before the last one here is drawn.
 const DROPS: DropConfig[] = [
-  { id: "DROP-001", number: 1, title: "GTA VI Bundle", goalCents: 200_000, opensAt: process.env.LAUNCH_AT || "2099-01-01T00:00:00Z", prize: GTA_VI_BUNDLE },
+  { id: "DROP-001", number: 1, title: "GTA VI Bundle", goalCents: 159_000, opensAt: process.env.LAUNCH_AT || "2099-01-01T00:00:00Z", prize: GTA_VI_BUNDLE },
   { id: "DROP-002", number: 2, title: "Mystery Drop", goalCents: 200_000 },
 ];
 

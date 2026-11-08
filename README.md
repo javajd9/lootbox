@@ -49,7 +49,7 @@ LOOTBOX isn't a one-off giveaway. It's a queue of drops, and every $LOOT trade k
 
 | Drop | Prize | Prize pool |
 |:-:|---|---|
-| **001** | GTA VI Bundle: PS5, OLED monitor and GTA VI | $2,000 |
+| **001** | GTA VI Bundle: PS5 Digital Edition, ASUS ROG Swift OLED monitor and GTA VI | $1,590 |
 | **002** | Mystery Drop | $2,000 |
 | **003 →** | Added to the queue as the drops ahead of it run | |
 
