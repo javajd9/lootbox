@@ -1,7 +1,8 @@
 "use client";
 
 // "Your tickets": paste or connect a wallet to see how many tickets it has in the box, worked out
-// from the drop's snapshots exactly as the draw will (GET /api/tickets).
+// from the drop's snapshots exactly as the draw will (GET /api/tickets). Before the first snapshot
+// it shows an estimate from what the wallet holds now.
 import { useState } from "react";
 import bs58 from "bs58";
 import { RULES } from "@/lib/config/rules";
@@ -9,7 +10,6 @@ import { dropNo } from "@/lib/live/format";
 import { findWallet, walletError } from "@/lib/live/wallet";
 import { WalletMissing } from "@/components/WalletMissing";
 import type { TicketsView } from "@/app/api/tickets/route";
-import { useLive } from "./LiveProvider";
 
 function isWallet(s: string) {
   try {
@@ -22,7 +22,31 @@ function isWallet(s: string) {
 const per = RULES.tokensPerTicket.toLocaleString("en-US");
 const n = (x: number) => x.toLocaleString("en-US");
 
+const holdMore = (
+  <p className="mt-2 text-sm text-cream/70">
+    Hold at least {per} $LOOT in this wallet (a regular wallet like Phantom or Solflare, not an exchange or pool) through the snapshots.
+  </p>
+);
+
+function Estimate({ holding }: { holding: NonNullable<TicketsView["holding"]> }) {
+  if (holding.leftOut) {
+    return <p className="mt-4 text-sm text-cream/70">This wallet is left out of every draw: LOOTBOX&apos;s own wallets, pools and program accounts can&apos;t hold tickets.</p>;
+  }
+  return (
+    <div className="mt-4">
+      <p className="text-4xl font-black tabular-nums text-cream">
+        {n(holding.tickets)} <span className="text-lg font-bold text-cream/70">ticket{holding.tickets === 1 ? "" : "s"} (estimate)</span>
+      </p>
+      <p className="mt-1 text-sm text-cream/70">
+        From the {n(Math.floor(holding.tokens))} $LOOT in this wallet right now. No snapshots have been taken yet, so your real count will be your average balance across them.
+      </p>
+      {holding.tickets === 0 && holdMore}
+    </div>
+  );
+}
+
 function Result({ view }: { view: TicketsView }) {
+  if (view.holding) return <Estimate holding={view.holding} />;
   if (!view.drop) {
     return <p className="mt-4 text-sm text-cream/70">No drop is filling right now. Tickets are counted from the next drop&apos;s snapshots.</p>;
   }
@@ -45,31 +69,23 @@ function Result({ view }: { view: TicketsView }) {
           ? `Locked for the ${drop} draw, out of ${n(view.totalTickets)}${odds}.`
           : `In ${drop} so far, out of ${n(view.totalTickets)}${odds}. Averaged over ${view.snapshots} snapshot${view.snapshots === 1 ? "" : "s"}, so it moves as more are taken.`}
       </p>
-      {view.tickets === 0 && !view.locked && (
-        <p className="mt-2 text-sm text-cream/70">
-          Hold at least {per} $LOOT in this wallet (a regular wallet like Phantom or Solflare, not an exchange or pool) through the snapshots.
-        </p>
-      )}
+      {view.tickets === 0 && !view.locked && holdMore}
     </div>
   );
 }
 
 export function YourTickets() {
-  const { live } = useLive();
   const [input, setInput] = useState("");
   const [error, setError] = useState<string>();
   const [missing, setMissing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<TicketsView>();
-  const [checked, setChecked] = useState(false);
 
   const check = async (w: string) => {
     const value = w.trim();
     setView(undefined);
-    setChecked(false);
     if (!isWallet(value)) return setError("That doesn't look like a Solana wallet address.");
     setError(undefined);
-    if (!live) return setChecked(true); // before launch there's no drop to count
     setBusy(true);
     try {
       const res = await fetch(`/api/tickets?wallet=${encodeURIComponent(value)}`);
@@ -132,7 +148,6 @@ export function YourTickets() {
             {missing && <WalletMissing fallback="paste your address above" />}
             {error && <p className="mt-3 text-sm text-bad">{error}</p>}
             {view && <Result view={view} />}
-            {checked && <p className="mt-4 text-sm text-cream/70">Ticket counts show here once the first drop opens and its first snapshot is taken.</p>}
           </div>
         </div>
       </div>

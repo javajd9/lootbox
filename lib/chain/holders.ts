@@ -18,7 +18,14 @@ interface HeliusPage {
   token_accounts: { owner: string; amount: number | string }[];
 }
 
-export async function readHolders(mint: string): Promise<TokenAccount[]> {
+export const readHolders = (mint: string) => tokenAccounts({ mint });
+
+// One wallet's whole balance of a token, read the same way a snapshot reads it.
+export async function readBalance(mint: string, owner: string): Promise<bigint> {
+  return (await tokenAccounts({ mint, owner })).reduce((total, a) => total + a.amount, 0n);
+}
+
+async function tokenAccounts(query: { mint: string; owner?: string }): Promise<TokenAccount[]> {
   const url = heliusUrl();
   if (!url) throw new Error("HELIUS_API_KEY is not set");
   const accounts: TokenAccount[] = [];
@@ -31,7 +38,7 @@ export async function readHolders(mint: string): Promise<TokenAccount[]> {
         jsonrpc: "2.0",
         id: "snapshot",
         method: "getTokenAccounts",
-        params: { mint, limit: 1000, cursor, options: { showZeroBalance: false } },
+        params: { ...query, limit: 1000, cursor, options: { showZeroBalance: false } },
       }),
     });
     const body = (await res.json()) as { result?: HeliusPage; error?: { message: string } };
