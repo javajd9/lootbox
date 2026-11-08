@@ -359,9 +359,8 @@ export function HeroTicket({ prizes, links }: { prizes: Record<string, PrizeItem
                   )}
                 </div>
 
-                <div className="grid items-center gap-4 max-sm:text-center sm:grid-cols-[1fr_auto_1fr]">
+                <div className="grid items-center gap-4 max-sm:text-center sm:grid-cols-[1fr_auto]">
                   <p className="t-small text-ink/75">1 ticket for every {per} $LOOT you hold</p>
-                  <Link href="/docs" className="link t-small">How it works</Link>
                   {/* pump.fun once LOOT_MINT is set; until then, where its address will be published */}
                   <Link
                     href={links.buy.href}
