@@ -18,7 +18,8 @@ export interface PrizeItem {
 // placed (orderCap refuses an item with no ASIN or no cap) and the homepage says the products
 // aren't locked yet.
 export const GTA_VI_BUNDLE: PrizeItem[] = [
-  { name: "PS5", quantity: 1, maxPriceCents: 0, image: "/prizes/ps5.webp" },
-  { name: "OLED Monitor", quantity: 1, maxPriceCents: 0, image: "/prizes/oled-monitor.webp" },
-  { name: "GTA VI", quantity: 1, maxPriceCents: 0, image: "/prizes/gta6.webp" },
+  // Caps leave about 10% over list for the winner's sales tax: $599.99, $749 and $79.99 list, $1,428.98 in all.
+  { name: "PS5 Digital Edition", asin: "B0CL5KNB9M", quantity: 1, maxPriceCents: 66_500, image: "/prizes/ps5.webp" },
+  { name: "ASUS ROG Swift OLED PG27AQDM", quantity: 1, maxPriceCents: 83_000, image: "/prizes/oled-monitor.webp" },
+  { name: "GTA VI Standard Edition", quantity: 1, maxPriceCents: 9_000, image: "/prizes/gta6.webp" },
 ];

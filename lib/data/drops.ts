@@ -18,7 +18,7 @@ const drops: Drop[] = [
     id: "DROP-001",
     title: "GTA VI Bundle",
     status: "upcoming",
-    goalUsd: 2000,
+    goalUsd: 1590,
     fundedUsd: 0,
     items: GTA_ITEMS,
     treasuryWallet: "",

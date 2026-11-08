@@ -11,7 +11,7 @@ export const RULES = {
   drawPauseMinutes: 2, // between the pool filling and the draw
   claimDays: CLAIM_DAYS,
   claimSigningMinutes: NONCE_TTL_MS / 60_000,
-  firstDropGoalUsd: 2000,
+  firstDropGoalUsd: 1590,
   collectMinSol: 0.05, // creator fees are collected into the treasury once this much is waiting
 };
 
