@@ -4,8 +4,7 @@
 // out until it's set (and only an x.com / twitter.com link counts). The source code's link is fixed.
 // Server only: it reads the same settings as /docs/addresses.
 import { publishedAddresses } from "./addresses";
-
-export const GITHUB_URL = "https://github.com/javajd9/lootbox";
+import { GITHUB_URL } from "./source";
 
 export interface OfficialLinks {
   mint?: string; // the $LOOT contract address

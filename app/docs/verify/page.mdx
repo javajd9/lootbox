@@ -56,3 +56,15 @@ If you won, enter your address and your secret code on the proof page. The finge
 ## Which steps the proof page runs
 
 On each drop's proof page, your browser runs steps 1, 2 (the Paid transaction), 4, 5 and 6. It reads each fingerprint from Solana's public RPC, checks each zkTLS proof's attestor signatures with Reclaim's SDK, and checks the receipt signature against the winning wallet. The fee inflows (step 2) and the draw (step 3) are checked by hand, from Solscan and the drop's **Draw data**.
+
+The code your browser runs for those checks is public, so you can read exactly what it does, or copy it into your own script.
+
+<Source
+  files={[
+    ["lib/proofs/verify-live.ts", "Every check the proof page runs in your browser"],
+    ["lib/proofs/package.ts", "Canonical JSON and package fingerprints"],
+    ["lib/proofs/receipt.ts", "The receipt message format"],
+    ["app/api/proofs/[dropId]/route.ts", "The proof packages you download"],
+    ["app/api/draws/[dropId]/route.ts", "The draw data you download"],
+  ]}
+/>

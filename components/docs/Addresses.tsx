@@ -2,6 +2,7 @@
 // (lib/config/addresses). An address that isn't set yet shows as not published.
 import { explorerAccount } from "@/lib/chain/solana";
 import { publishedAddresses } from "@/lib/config/addresses";
+import { Table } from "./DocsBlocks";
 
 function Address({ value, pending }: { value?: string; pending: string }) {
   if (!value) return <span className="text-mute">{pending}</span>;
@@ -14,35 +15,6 @@ function Address({ value, pending }: { value?: string; pending: string }) {
     >
       {value}
     </a>
-  );
-}
-
-function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
-  return (
-    <div className="my-8 overflow-x-auto border-y border-line">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr>
-            {head.map((h) => (
-              <th key={h} className="hud whitespace-nowrap border-b border-line py-3 pr-6 font-normal">
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((cells, i) => (
-            <tr key={i}>
-              {cells.map((c, j) => (
-                <td key={j} className="border-b border-line py-3 pr-6 align-top leading-6 text-cream/80 [tr:last-child_&]:border-b-0">
-                  {c}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }
 

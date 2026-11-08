@@ -1,0 +1,52 @@
+import { RULES } from "@/lib/config/rules";
+import { DropQueue } from "@/components/docs/DropQueue";
+
+export const metadata = { title: "Drop after drop" };
+
+<p className="eyebrow mb-4">Docs · Basics</p>
+
+# Drop after drop
+
+LOOTBOX isn't a one-off giveaway. It's a queue of drops, and every $LOOT trade keeps it moving. When one drop is drawn, the next one is already filling.
+
+## The queue
+
+This list is read from the same queue the drop engine runs, so it's always what's actually lined up.
+
+<DropQueue />
+
+- **The next drop opens the moment the last one is drawn.** It doesn't wait for the last prize to ship. While one winner claims and their prize is on its way, the next pool is already filling.
+- **Nobody signs up again.** Each drop takes its own snapshots, so if you keep holding $LOOT you're in every drop.
+- **Nothing is wasted between drops.** Each prize leaves the treasury the moment its pool fills. Anything the pool collected past its goal stays in the treasury and starts the next drop's pool.
+- **Every drop stays on the record.** Each one keeps its [proof page](/proof), and its fingerprints stay on Solana, so the history only grows.
+
+<Rule rule="leftoverFees" />
+
+## The life of a drop
+
+Every drop goes through the same stages, in the same order. Nobody has to press anything: the [drop engine](/docs/how-it-runs) moves each drop to its next stage as soon as it's due.
+
+| Stage | What happens | Until |
+|---|---|---|
+| **Waiting** | The drop is in the queue | The drop ahead of it is drawn. Drop 001 opens at launch |
+| **Filling** | Creator fees fill the pool. Holder snapshots are taken at random times, every {RULES.snapshotMinHours}–{RULES.snapshotMaxHours} hours | The pool reaches its goal |
+| **Full** | The prize's worth is swapped to USDC and set aside (the **Paid** proof). A final snapshot is taken and the ticket list is locked on Solana | {RULES.drawPauseMinutes} minutes later |
+| **Drawing** | ORAO VRF is asked for the randomness, and it picks one ticket | The randomness is on Solana and the winner is known |
+| **Claiming** | The winner signs with their wallet and enters a shipping address at a $0 checkout | They claim, or {RULES.claimDays} days pass and the prize is redrawn |
+| **Shipping** | The prize is ordered and followed to the winner's door (**Ordered**, **Shipped**) | Every package has arrived (**Delivered**) |
+| **Delivered** | Waiting for the winner to sign that they got it (**Received**) | They sign, or 14 days pass |
+| **Complete** | The winner's address is deleted. The proof page is final | |
+
+## Each drop's prize
+
+Every drop has its own prize and its own pool goal. A drop's products, each with a fixed retailer product ID and a price cap, are listed before its pool fills, and the order is checked against that list automatically. The cap includes tax and shipping, so the goal covers the whole cost. See [Buying & delivery](/docs/buying-and-delivery).
+
+If no drop is queued when the last one is drawn, the team is alerted to add one. Fees keep arriving in the treasury in the meantime, and all of it counts toward the next drop's pool.
+
+<Source
+  files={[
+    ["lib/engine/drops.ts", "The queue: every drop, its goal and its prize"],
+    ["lib/config/prizes.ts", "What each prize is made of, with product IDs and price caps"],
+    ["lib/engine/decide.ts", "When each stage is due"],
+  ]}
+/>

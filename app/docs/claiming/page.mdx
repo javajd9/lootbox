@@ -36,3 +36,11 @@ If a wallet pop-up shows anything else, such as a transaction, an approval or a 
 <Rule rule="unclaimed" />
 
 <Rule rule="shipping" />
+
+<Source
+  files={[
+    ["lib/claims/claims.ts", "The message you sign, and how the signature is checked"],
+    ["app/claim/", "The claim page"],
+    ["app/api/shopify/orders/route.ts", "Receives the $0 checkout and stores the address privately"],
+  ]}
+/>

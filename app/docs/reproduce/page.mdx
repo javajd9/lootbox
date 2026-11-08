@@ -62,3 +62,13 @@ Three wallets hold 100, 300 and 600 tickets (1,000 in total), and the randomness
 | Winner | **{example.wallet}** |
 
 Any correct implementation of the steps above gives the same result.
+
+<Source
+  files={[
+    ["lib/draws/weighted-pick.ts", "The selection above, exactly as the draw runs it"],
+    ["lib/draws/snapshot.ts", "Snapshot fingerprints and adding up balances"],
+    ["lib/draws/tickets.ts", "Balances to tickets, and ticket numbers to wallets"],
+    ["lib/chain/vrf.ts", "Each round's seed and its ORAO randomness account"],
+    ["tests/draws.test.ts", "Tests for the pick, including its fairness"],
+  ]}
+/>

@@ -1,0 +1,68 @@
+import { GITHUB_URL } from "@/lib/config/source";
+
+export const metadata = { title: "Read the code" };
+
+<p className="eyebrow mb-4">Docs · Under the hood · Verify</p>
+
+# Read the code
+
+You don't have to take these docs' word for it. LOOTBOX's source code is public on GitHub, and the live site is built from its `main` branch.
+
+<div className="my-6">
+  <a
+    href={GITHUB_URL}
+    target="_blank"
+    rel="noreferrer"
+    className="inline-flex items-center gap-2 border border-loot px-4 py-2 font-mono text-sm text-loot transition hover:bg-loot hover:text-ink"
+  >
+    {GITHUB_URL.replace("https://", "")} ↗
+  </a>
+</div>
+
+## Where to look
+
+These are the files that decide who wins and what gets published, in the order a drop uses them.
+
+| To check | Read |
+|---|---|
+| The drop queue, and what each prize is | <Src path="lib/engine/drops.ts" /> <Src path="lib/config/prizes.ts" /> |
+| How holdings become tickets | <Src path="lib/draws/snapshot.ts" /> <Src path="lib/draws/tickets.ts" /> |
+| Why nobody knows when a snapshot will happen | <Src path="lib/engine/schedule.ts" /> |
+| The engine's rules: when each step of a drop is due | <Src path="lib/engine/decide.ts" /> <Src path="lib/engine/run.ts" /> |
+| How fees reach the treasury and the prize is paid for | <Src path="lib/treasury/" /> |
+| Why a draw's randomness can't be re-rolled | <Src path="lib/chain/vrf.ts" /> |
+| How the randomness picks one ticket | <Src path="lib/draws/weighted-pick.ts" /> |
+| How a winner proves they own the wallet | <Src path="lib/claims/claims.ts" /> |
+| How the address fingerprint is made | <Src path="lib/proofs/commitment.ts" /> |
+| How the prize is ordered, paid for and tracked | <Src path="lib/orders/order.ts" /> <Src path="lib/orders/x402.ts" /> <Src path="lib/orders/delivery.ts" /> |
+| What each order proof reveals and hides | <Src path="lib/orders/redact.ts" /> |
+| The guard that stops an address leaking into a proof | <Src path="lib/proofs/pii-guard.ts" /> |
+| How proofs are chained and fingerprinted | <Src path="lib/proofs/package.ts" /> <Src path="lib/chain/memo.ts" /> |
+| The checks the proof page runs in your browser | <Src path="lib/proofs/verify-live.ts" /> |
+| The drop rules these docs quote | <Src path="lib/config/rules.ts" /> |
+| The database tables | <Src path="supabase/migrations/" /> |
+
+Every page and API route is under <Src path="app/" />, and these docs are the `.mdx` files in <Src path="app/docs/" />.
+
+## The docs come from the code
+
+The rules on these pages aren't copied by hand. Each **Rule** box, the ticket size, the claim window and the drop queue are read from the same settings the engine runs on. The examples are made by the real code when the site is built: the [claim message](/docs/claiming), the [proof package](/docs/proofs), the [address fingerprint](/docs/privacy) and the [draw example](/docs/reproduce). If the code changes, these pages change with it.
+
+## Run the tests
+
+The tests run the drop engine from a drop opening to the winner's receipt, along with the ticket math, the draw, claims, orders and proofs. They need no keys or accounts. With Node.js 20 or later:
+
+```bash
+git clone https://github.com/javajd9/lootbox.git
+cd lootbox
+npm ci
+npm test
+```
+
+## What the code can't show
+
+Reading the code tells you what LOOTBOX is built to do. It can't prove that the server is running exactly this code. That's why every step also leaves evidence you can check without trusting the server: transactions and fingerprints on Solana, and zkTLS proofs from the order service. See [What you're trusting](/docs/trust) and [Verify it yourself](/docs/verify).
+
+<Callout title="All rights reserved">
+  <p>The source is public so anyone can check it. © LOOTBOX. All rights reserved.</p>
+</Callout>

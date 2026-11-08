@@ -12,12 +12,14 @@ Some of LOOTBOX can be checked by anyone, and some of it relies on LOOTBOX or an
 - The ticket list is locked on-chain before the randomness exists, and anyone can re-run the draw.
 - The order proof comes from the order service's own server, and it can't be edited.
 - Every proof's fingerprint is on Solana, so nothing can be changed quietly afterward.
+- The rules themselves: the code that runs every drop is [public on GitHub](/docs/source).
 
 ## What you do trust
 
 | Who | For what | Why it's reasonable |
 |---|---|---|
 | **LOOTBOX** | Keeping the treasury's and purchasing account's keys safe, and keeping the winner's address private until it's deleted | Every move either account makes is public on Solana, so misuse would show. The address is never published, and it's deleted when the drop is complete |
+| **LOOTBOX** | Running the published code | The site is built from the public source's `main` branch. You can't see a server's code from outside, so every step also leaves evidence on Solana that doesn't depend on it |
 | **Solana** | Recording transactions and fingerprints | The chain everything else runs on |
 | **ORAO VRF** | Producing randomness nobody can predict or choose | Its randomness comes with a proof that's checked on-chain |
 | **Jupiter** | Swapping the pool's SOL to USDC at a fair price | The swap is a public transaction, and it fails rather than cost more than 0.5% over its quote |

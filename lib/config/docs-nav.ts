@@ -14,6 +14,7 @@ export const DOCS_NAV: { group: string; pages: DocsPage[] }[] = [
       { title: "Overview", href: "/docs" },
       { title: "Tickets", href: "/docs/tickets" },
       { title: "The prize pool", href: "/docs/prize-pool" },
+      { title: "Drop after drop", href: "/docs/drops" },
     ],
   },
   {
@@ -37,6 +38,13 @@ export const DOCS_NAV: { group: string; pages: DocsPage[] }[] = [
       { title: "The 8 proofs", href: "/docs/proofs" },
       { title: "What you're trusting", href: "/docs/trust" },
       { title: "Verify it yourself", href: "/docs/verify", verify: true },
+    ],
+  },
+  {
+    group: "Under the hood",
+    pages: [
+      { title: "How it runs", href: "/docs/how-it-runs" },
+      { title: "Read the code", href: "/docs/source", verify: true },
     ],
   },
   {

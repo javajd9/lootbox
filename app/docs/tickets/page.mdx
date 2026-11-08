@@ -44,6 +44,11 @@ Six snapshots are taken during a drop.
 - Accounts run by a program, such as another liquidity pool or a vault, are left out of every snapshot because they can't sign a claim.
 - You can look up a wallet in the **Your tickets** box on the [live page](/).
 
-## Source
-
-The ticket math is in `lib/draws/snapshot.ts` and `lib/draws/tickets.ts`.
+<Source
+  files={[
+    ["lib/chain/holders.ts", "Reads every $LOOT holder from Solana, leaving out accounts owned by a program"],
+    ["lib/draws/snapshot.ts", "Builds each snapshot, leaving out the excluded wallets"],
+    ["lib/draws/tickets.ts", "Averages the snapshots and turns balances into tickets"],
+    ["lib/engine/schedule.ts", "Picks each snapshot's random time"],
+  ]}
+/>
