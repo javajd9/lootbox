@@ -33,7 +33,7 @@ describe("address commitment", () => {
 describe("proof package chain", () => {
   const chain = (): ProofPackage[] => {
     const p0 = buildPackage({ dropId: "DROP-001", type: "payment", createdAt: "2026-11-20T00:00:00Z", revealed: { usdc: 1800 }, attestation: "solana-tx-sig" });
-    const p1 = buildPackage({ dropId: "DROP-001", type: "order", createdAt: "2026-11-21T00:00:00Z", revealed: { asins: ["B0PS5PRO"], total: 1749.97 }, attestation: { reclaim: "..." } }, p0);
+    const p1 = buildPackage({ dropId: "DROP-001", type: "order", createdAt: "2026-11-21T00:00:00Z", revealed: { asins: ["B0CL61F39H"], total: 1749.97 }, attestation: { reclaim: "..." } }, p0);
     const p2 = buildPackage({ dropId: "DROP-001", type: "tracking", createdAt: "2026-11-24T00:00:00Z", revealed: { tag: "Delivered" }, attestation: { reclaim: "..." } }, p1);
     return [p0, p1, p2];
   };
@@ -51,7 +51,7 @@ describe("proof package chain", () => {
   it("editing any package breaks it", () => {
     const pkgs = chain();
     const anchored = pkgs.map(hashPackage);
-    pkgs[1].revealed = { asins: ["B0PS5PRO"], total: 1.0 };
+    pkgs[1].revealed = { asins: ["B0CL61F39H"], total: 1.0 };
     const r = verifyChain(pkgs, anchored);
     expect(r.ok).toBe(false);
     expect(r.errors.join(" ")).toMatch(/package 1: hash does not match|package 2: prevHash/);

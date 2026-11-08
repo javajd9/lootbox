@@ -18,7 +18,7 @@ export interface PrizeItem {
 // placed (orderCap refuses an item with no ASIN or no cap) and the homepage says the products
 // aren't locked yet.
 export const GTA_VI_BUNDLE: PrizeItem[] = [
-  { name: "PS5 Pro", quantity: 1, maxPriceCents: 0, image: "/prizes/ps5-pro.webp" },
+  { name: "PS5", quantity: 1, maxPriceCents: 0, image: "/prizes/ps5.webp" },
   { name: "OLED Monitor", quantity: 1, maxPriceCents: 0, image: "/prizes/oled-monitor.webp" },
   { name: "GTA VI", quantity: 1, maxPriceCents: 0, image: "/prizes/gta6.webp" },
 ];
