@@ -35,10 +35,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const links = officialLinks();
   const buyProps = links.buy.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
   const socials = [
-    ["X", links.x],
-    ["GitHub", links.github],
-    ["pump.fun", links.pumpfun],
-  ].filter((s): s is [string, string] => Boolean(s[1]));
+    ["X", links.x, "/social/x.png"],
+    ["GitHub", links.github, "/social/github.png"],
+    ["pump.fun", links.pumpfun, "/social/pumpfun.png"],
+  ].filter((s): s is [string, string, string] => Boolean(s[1]));
   return (
     // suppressHydrationWarning: the script below adds the `js` class before React loads.
     <html lang="en" className={sans.variable} suppressHydrationWarning>
@@ -79,10 +79,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ))}
             </div>
             {socials.length > 0 && (
-              <div className="flex gap-6 text-sm text-cream/80">
-                {socials.map(([label, href]) => (
-                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="hover:text-loot">
-                    {label}
+              <div className="flex gap-2">
+                {socials.map(([label, href, logo]) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="p-2 opacity-80 transition hover:opacity-100">
+                    <img src={logo} alt="" width={24} height={24} className="h-6 w-6" />
                   </a>
                 ))}
               </div>
