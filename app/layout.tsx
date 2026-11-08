@@ -36,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const buyProps = links.buy.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
   const socials = [
     ["X", links.x],
+    ["GitHub", links.github],
     ["pump.fun", links.pumpfun],
   ].filter((s): s is [string, string] => Boolean(s[1]));
   return (
