@@ -6,7 +6,7 @@ import { CopyAddress } from "@/components/brand/CopyAddress";
 import { MobileMenu } from "@/components/brand/MobileMenu";
 import { officialLinks } from "@/lib/config/links";
 import "./globals.css";
-import "./legacy.css";
+import "./pages.css";
 
 // The brand's one typeface: Inter (latin, variable weight), kept in the repo so builds never depend on
 // Google Fonts. (Monospace, for real code only, loads in the docs and proof pages: lib/fonts.ts.)
