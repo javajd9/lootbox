@@ -1,0 +1,69 @@
+export const metadata = { title: "How it runs" };
+
+<p className="eyebrow mb-4">Docs · Under the hood</p>
+
+# How it runs
+
+LOOTBOX runs itself. Nobody picks a winner, places an order or posts a proof by hand. One program, the **drop engine**, does every step of every drop, and it publishes the evidence as it goes.
+
+## One app
+
+The website, these docs, the proof pages and the drop engine are one Next.js app on Vercel, built from the `main` branch of the [public source on GitHub](/docs/source).
+
+| Piece | What it does |
+|---|---|
+| **The scheduler** | Wakes the drop engine once a minute (a database job in Supabase) |
+| **The drop engine** | Looks at every drop, does whatever is due, and saves |
+| **The trades feed** | Helius sends every $LOOT trade to the site, so the homepage drops a coin for it |
+| **The checkout** | Shopify sends the winner's $0 checkout to the site, which stores the address privately |
+| **The database** | Supabase holds the engine's state, the proof packages and the private address table |
+
+## Every minute
+
+Each minute the engine wakes up and works through every drop in the queue:
+
+1. **Read the pool.** The treasury's SOL at today's price, plus creator fees waiting to be collected.
+2. **Decide what's due.** A snapshot whose random time has come, a pool that's full, randomness that has landed, a claim to order, a package to check on.
+3. **Do it, and save.** Each step is saved the moment it's done, before the next one starts.
+
+Only one tick runs at a time, even across servers. If another is still working, the new one steps aside.
+
+## When something goes wrong
+
+The engine is built so a crash, a timeout or a slow service never skips or doubles a step.
+
+- **Every step is safe to repeat.** Each outside call is tied to its drop and round. If the server stops after doing a step but before saving it, the next tick does it again and gets the same result. A draw round, for example, always asks for the same randomness account, so a retry can't roll new randomness.
+- **Slow steps move forward a little each minute.** Buying and shipping the prize take hours or days. The engine checks on them every tick and saves as it goes, so it always picks up where it stopped.
+- **A failed step waits for the next tick.** Other drops keep going in the meantime.
+- **Anything unsafe stops on a hold.** If a product's price goes over its cap, an order or delivery fails, or a pool fills with no tickets in the box, the drop is put on hold. The engine won't touch it until the team clears the hold.
+
+<Rule rule="priceChange" />
+
+## What the team is told
+
+The engine alerts the team, once per problem, when:
+
+- the randomness for a draw hasn't arrived after 10 minutes;
+- a prize was claimed a day ago and the order still isn't placed;
+- a prize was ordered three weeks ago and still isn't delivered, or the carrier reports a problem;
+- a drop goes on hold;
+- the last drop has been drawn and nothing is queued after it.
+
+## What people still do
+
+Three things: choose each drop's prize and add it to the queue, clear a hold if one happens, and answer questions. Everything between a trade and the winner's receipt is the engine's job.
+
+## Tested by moving time forward
+
+The engine's rules are plain functions: given the state of every drop and the time, they say what's due. They have no clock, network or randomness of their own, so every rule can be tested by moving time forward, from a drop opening to its winner signing for the prize. Those tests are in the [source](/docs/source) and anyone can run them.
+
+<Source
+  files={[
+    ["lib/engine/run.ts", "One tick: read the pool, do what's due, save after each step"],
+    ["lib/engine/decide.ts", "The rules: what's due for each drop, and what each step changes"],
+    ["lib/engine/schedule.ts", "When the next random snapshot happens"],
+    ["lib/engine/live.ts", "The real work behind each step: Solana, ORAO, Zinc, Reclaim"],
+    ["app/api/tick/route.ts", "What the scheduler calls every minute"],
+    ["tests/engine.test.ts", "The rules, tested from opening to receipt"],
+  ]}
+/>

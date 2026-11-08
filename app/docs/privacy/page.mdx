@@ -41,6 +41,11 @@ Without the secret, guessing addresses doesn't help, because each guess would al
 
 Before any proof is published, an automatic check searches everything about to be revealed for the winner's name, street, city, ZIP and phone, ignoring case, spacing and punctuation. If anything matches, publishing stops and the proof waits until it's fixed.
 
-## Source
-
-The fingerprint is in `lib/proofs/commitment.ts` and the leak guard is in `lib/proofs/pii-guard.ts`. The address is deleted in the drop engine's last step, in `lib/engine/live.ts`.
+<Source
+  files={[
+    ["lib/proofs/commitment.ts", "Tidies the address and makes its fingerprint"],
+    ["lib/proofs/pii-guard.ts", "The leak guard that runs before every proof is published"],
+    ["lib/engine/live.ts", "Deletes the address in the drop's last step"],
+    ["supabase/migrations/", "The private address table, readable only by the server"],
+  ]}
+/>

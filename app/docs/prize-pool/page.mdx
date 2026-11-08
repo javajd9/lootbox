@@ -18,11 +18,13 @@ The prize pool on the live page is the SOL in the treasury plus the creator fees
 
 ## Goals
 
-Every drop has a goal: the cost of its bundle, including tax and shipping. The first drop, the GTA VI Bundle, has a goal of **${RULES.firstDropGoalUsd.toLocaleString("en-US")}**.
+Every drop has a goal: the cost of its bundle, including tax and shipping. The first drop, the GTA VI Bundle, has a goal of **${RULES.firstDropGoalUsd.toLocaleString("en-US")}**. Each drop after it has its own prize and goal, listed in [the queue](/docs/drops).
 
 When the pool reaches its goal, the prize money is set aside and the ticket list is locked. [The draw](/docs/the-draw) follows {RULES.drawPauseMinutes} minutes later. Nobody has to press anything.
 
 <Rule rule="leftoverFees" />
+
+The next drop opens the moment this one is drawn, so its pool starts filling straight away. See [Drop after drop](/docs/drops).
 
 ## How the money is spent
 
@@ -37,3 +39,12 @@ The treasury's key is held by LOOTBOX's drop engine on its servers. That's what 
 - Every fee coming into the treasury, on Solscan.
 - Every payment out: the prize's worth to the purchasing account (the **Paid** proof), and the purchasing account's payment to Zinc (in the **Ordered** proof).
 - That the pool on the live page matches the treasury's balance plus the fees waiting to be collected.
+
+<Source
+  files={[
+    ["lib/treasury/treasury.ts", "How the pool is valued: the treasury's SOL plus fees waiting to be collected"],
+    ["lib/treasury/fees.ts", "Collecting creator fees from pump.fun into the treasury"],
+    ["lib/treasury/swap.ts", "The Paid transaction: SOL to USDC, sent to the purchasing account"],
+    ["lib/config/rules.ts", "The goal, the pause before the draw and the other drop rules"],
+  ]}
+/>

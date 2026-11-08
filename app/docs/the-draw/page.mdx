@@ -37,3 +37,12 @@ The rolling ticket on the live page only reveals a result that's already on-chai
 If the randomness request fails, it's sent again. The ticket list is already locked, so a retry can't change who's in the draw.
 
 <Rule rule="unclaimed" />
+
+<Source
+  files={[
+    ["lib/engine/live.ts", "Locks the ticket list on Solana, then requests the randomness"],
+    ["lib/chain/vrf.ts", "Ties each draw round to one ORAO randomness account, so it can't be re-rolled"],
+    ["lib/draws/weighted-pick.ts", "Turns the random bytes into one ticket"],
+    ["lib/draws/tickets.ts", "Numbers the tickets in wallet order"],
+  ]}
+/>

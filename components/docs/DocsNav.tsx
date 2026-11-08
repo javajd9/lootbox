@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DOCS_NAV, DOCS_PAGES } from "@/lib/config/docs-nav";
+import { GITHUB_URL } from "@/lib/config/source";
 
 function VerifyTag() {
   return <span className="ml-2 rounded-sm border border-loot/40 px-1 font-mono text-[9px] uppercase tracking-wider text-loot/80">Verify</span>;
@@ -37,6 +38,9 @@ function Links({ onNavigate }: { onNavigate?: () => void }) {
           </ul>
         </div>
       ))}
+      <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hud block transition hover:text-loot">
+        Source on GitHub ↗
+      </a>
     </nav>
   );
 }

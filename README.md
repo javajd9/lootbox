@@ -16,6 +16,8 @@
   <a href="https://www.getlootbox.fun/proof"><b>Proofs</b></a>
   &nbsp;·&nbsp;
   <a href="https://www.getlootbox.fun/docs/verify"><b>Verify it yourself</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://x.com/getlootbox"><b>X</b></a>
 </p>
 
 <p align="center">
@@ -56,6 +58,8 @@ LOOTBOX isn't a one-off giveaway. It's a queue of drops, and every $LOOT trade k
 - **Nobody has to run it.** Every minute the engine does whatever is due, from snapshots to the draw to the order, and after a crash or a slow reply it picks up where it stopped.
 - **Every drop stays on the record.** Each one keeps its proof page, and its fingerprints stay on Solana, so the history only grows.
 
+The full queue is at [getlootbox.fun/docs/drops](https://www.getlootbox.fun/docs/drops), read from the same list the engine runs ([`lib/engine/drops.ts`](lib/engine/drops.ts)).
+
 ## How a drop works
 
 <img src=".github/assets/how-it-works.svg" alt="Hold, Fill, Draw, Check: every 10,000 $LOOT you hold is a ticket, trading fees fill the prize pool, ORAO VRF picks one locked ticket, and the prize ships with every step proven." width="100%">
@@ -84,9 +88,40 @@ The [proof page](https://www.getlootbox.fun/proof) re-runs these checks in your 
 
 **Privacy.** The winner's name, address, phone and email are never published. Only a salted fingerprint of the address goes on-chain, and only the winner can check it. LOOTBOX keeps the address privately until the prize arrives, then deletes it.
 
+## The life of a drop
+
+Every drop moves through the same stages, and the drop engine moves it along as soon as each one is due. Nobody presses anything.
+
+```mermaid
+flowchart LR
+  W([Waiting]) -->|drop ahead is drawn| F([Filling])
+  F -->|pool hits its goal| L
+  L(["Full: paid and locked"]) -->|2 minutes| D([Drawing])
+  D -->|ORAO VRF picks a ticket| C([Claiming])
+  C -.->|not claimed in 14 days| D
+  C -->|winner signs + checks out| S([Shipping])
+  S -->|every package arrives| R([Delivered])
+  R -->|winner signs, or 14 days| X([Complete])
+```
+
+| Stage | What happens |
+|---|---|
+| **Filling** | Creator fees fill the pool. Holder snapshots are taken at random, unannounced times, every 2–8 hours |
+| **Full** | The prize's worth is swapped to USDC and set aside. A final snapshot is taken and the ticket list is locked on Solana |
+| **Drawing** | ORAO VRF's randomness picks one ticket. The next drop opens at this moment |
+| **Claiming** | The winner signs with their wallet and enters an address at a $0 checkout. Unclaimed after 14 days, it's redrawn from the same list |
+| **Shipping** | Zinc buys the locked products and follows them to the winner's door |
+| **Complete** | The winner's address is deleted and the proof page is final |
+
 ## How it's built
 
 LOOTBOX is one Next.js app on Vercel: the website, the docs, the proof pages and the drop engine. Every minute a scheduler wakes the engine, which looks at every drop, does whatever step is due, and saves. Steps that wait on outside services, like buying and shipping the prize, move forward one small step per tick and save as they go, so after a crash or a slow reply the next tick picks up where the last one stopped.
+
+- **One tick at a time.** A lock means two ticks never run at once, even across servers.
+- **Every step is safe to repeat.** Each outside call is tied to its drop and round, so a step that ran but wasn't saved gives the same result when it runs again.
+- **Unsafe means stop.** A price over its cap, a failed order or a pool with no tickets puts the drop on hold, and the engine won't touch it until a person clears it.
+
+More at [getlootbox.fun/docs/how-it-runs](https://www.getlootbox.fun/docs/how-it-runs).
 
 | Piece | What LOOTBOX uses it for |
 |---|---|
@@ -120,9 +155,46 @@ You don't have to take the docs' word for it. These are the files that decide wh
 | The guard that stops an address leaking into a proof | [`lib/proofs/pii-guard.ts`](lib/proofs/pii-guard.ts) |
 | How proofs are chained and fingerprinted | [`lib/proofs/package.ts`](lib/proofs/package.ts), [`lib/chain/memo.ts`](lib/chain/memo.ts) |
 | The checks the proof page runs in your browser | [`lib/proofs/verify-live.ts`](lib/proofs/verify-live.ts) |
+| The drop rules the docs quote word for word | [`lib/config/rules.ts`](lib/config/rules.ts) |
 | The database tables | [`supabase/migrations/`](supabase/migrations) |
 
-Every page and API route is under [`app/`](app).
+The same list, with every file linked from the page that explains it, is at [getlootbox.fun/docs/source](https://www.getlootbox.fun/docs/source).
+
+### Where things are
+
+| Folder | What's in it |
+|---|---|
+| [`app/`](app) | Every page and API route: the live page, claim, proofs, and the engine's [`api/tick`](app/api/tick/route.ts) |
+| [`app/docs/`](app/docs) | The docs, as `.mdx` pages. Their rules, numbers and examples are read from the code, so they can't drift from it |
+| [`lib/engine/`](lib/engine) | The drop engine: the queue, the rules for each stage, and one tick |
+| [`lib/draws/`](lib/draws) | Snapshots, tickets and the weighted pick |
+| [`lib/treasury/`](lib/treasury) | Creator fees, the pool's value and the swap to USDC |
+| [`lib/claims/`](lib/claims) | Winner claims and the $0 checkout |
+| [`lib/orders/`](lib/orders) | Buying, paying for and tracking the prize |
+| [`lib/proofs/`](lib/proofs) | Proof packages, the address fingerprint, the leak guard and the in-browser checks |
+| [`lib/chain/`](lib/chain) | Solana: holders, memos, ORAO VRF and pump.fun |
+| [`supabase/migrations/`](supabase/migrations) | The database |
+| [`tests/`](tests) | The tests |
+
+### Run the tests
+
+The tests run a drop from opening to the winner's receipt, and check the ticket math, the draw's odds, claims, orders and proofs. They need no keys or accounts.
+
+```bash
+npm ci
+npm test
+```
+
+## Docs
+
+The rules in plain language, and how to check each one, are at **[getlootbox.fun/docs](https://www.getlootbox.fun/docs)**.
+
+| | |
+|---|---|
+| **The rules** | [Tickets](https://www.getlootbox.fun/docs/tickets) · [The prize pool](https://www.getlootbox.fun/docs/prize-pool) · [Drop after drop](https://www.getlootbox.fun/docs/drops) · [How the winner is picked](https://www.getlootbox.fun/docs/the-draw) |
+| **Winning** | [Claiming a prize](https://www.getlootbox.fun/docs/claiming) · [Buying & delivery](https://www.getlootbox.fun/docs/buying-and-delivery) · [Privacy](https://www.getlootbox.fun/docs/privacy) |
+| **Checking** | [The 8 proofs](https://www.getlootbox.fun/docs/proofs) · [Verify it yourself](https://www.getlootbox.fun/docs/verify) · [Reproduce a draw](https://www.getlootbox.fun/docs/reproduce) · [What you're trusting](https://www.getlootbox.fun/docs/trust) |
+| **Under the hood** | [How it runs](https://www.getlootbox.fun/docs/how-it-runs) · [Read the code](https://www.getlootbox.fun/docs/source) · [Addresses](https://www.getlootbox.fun/docs/addresses) · [FAQ](https://www.getlootbox.fun/docs/faq) |
 
 <br>
 

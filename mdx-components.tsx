@@ -1,7 +1,7 @@
 // How Markdown elements in the docs are styled, plus the custom blocks available in every .mdx page.
 import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
-import { Callout, CodeBlock, Flow, Rule } from "@/components/docs/DocsBlocks";
+import { Callout, CodeBlock, Flow, Rule, Source, Src } from "@/components/docs/DocsBlocks";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -38,6 +38,8 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     CodeBlock,
     Rule,
     Flow,
+    Source,
+    Src,
     ...components,
   };
 }

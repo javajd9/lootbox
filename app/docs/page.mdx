@@ -19,6 +19,10 @@ $LOOT trading fees pay for real prizes, and holding $LOOT gets you tickets. When
   ]}
 />
 
+## Drop after drop
+
+LOOTBOX is a queue of drops, not a one-off giveaway. The next drop opens the moment the last one is drawn, and anything a pool collected past its goal starts the next one. Keep holding $LOOT and you're in every drop. See [Drop after drop](/docs/drops).
+
 ## Fairness and privacy
 
 The ticket list is locked on Solana before any randomness exists, and the randomness comes from ORAO VRF. LOOTBOX doesn't pick the winner and has no way to.
@@ -27,6 +31,20 @@ The winner's name, address, phone number and email are never published. What doe
 
 Each step's evidence comes from where it happened: Solana, the order service and its carrier tracking, and the winner's own wallet. The proof page re-runs every check in your browser.
 
+## Runs itself, in the open
+
+Nobody at LOOTBOX picks a winner, places an order or posts a proof by hand. A program called the drop engine does every step, every minute, and publishes the evidence as it goes. See [How it runs](/docs/how-it-runs).
+
+The code behind all of it, including these docs, is public on [GitHub](/docs/source). Each page ends with links to the files that do what it describes.
+
 ## Finding your way around
 
-Pages tagged **Verify** are for developers and anyone who wants the details: addresses, proof formats, step-by-step verification and how to reproduce a draw. The other pages cover the rules: tickets, the pool, the draw, claiming, privacy and the proofs.
+| If you want to | Start with |
+|---|---|
+| Understand the rules | [Tickets](/docs/tickets), [The prize pool](/docs/prize-pool), [Drop after drop](/docs/drops) |
+| Know what happens if you win | [Claiming a prize](/docs/claiming), [Buying & delivery](/docs/buying-and-delivery), [Privacy](/docs/privacy) |
+| Check that a drop was fair | [The 8 proofs](/docs/proofs), [Verify it yourself](/docs/verify), [Reproduce a draw](/docs/reproduce) |
+| Know what you're trusting | [What you're trusting](/docs/trust), [Addresses](/docs/addresses) |
+| Read the code | [How it runs](/docs/how-it-runs), [Read the code](/docs/source) |
+
+Pages tagged **Verify** are for developers and anyone who wants the details: addresses, proof formats, step-by-step verification, how to reproduce a draw and where to find each piece in the code.

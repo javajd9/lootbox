@@ -62,3 +62,12 @@ Below is a package built by the same code that publishes them: the Shipped step,
 ## Where to see them
 
 Every drop has a [proof page](/proof). It re-checks Paid, Ordered, Delivered, Received and the whole package chain in your browser, and links the raw data for the rest. Once a drop has published proofs, **Try tampering** changes one number in its order proof so you can watch a check fail. To check things by hand, see [Verify it yourself](/docs/verify).
+
+<Source
+  files={[
+    ["lib/proofs/package.ts", "Builds each proof package and its fingerprint"],
+    ["lib/chain/memo.ts", "The LOOTBOX|v1 fingerprint format posted on Solana"],
+    ["lib/proofs/pii-guard.ts", "Stops any proof that would reveal the winner's details"],
+    ["lib/proofs/receipt.ts", "The Received message the winner signs"],
+  ]}
+/>
