@@ -2,6 +2,7 @@
 // Serverless instances share nothing in memory, so every step of a claim is saved here.
 import { check, serverDb } from "@/lib/db";
 import type { PendingClaim } from "./claims";
+import { comesFrom, nonceUsed, type ClaimStatus } from "./status";
 
 export interface ClaimRow {
   id: string;
@@ -11,7 +12,7 @@ export interface ClaimRow {
   nonce: string;
   nonce_expires_at: string;
   message: string;
-  status: "nonce_issued" | "wallet_verified" | "checkout_sent" | "checkout_complete" | "expired";
+  status: ClaimStatus; // see ./status for what each one means and where it can go
   token: string | null;
   checkout_url: string | null;
   shopify_order_id: string | null;
@@ -30,7 +31,7 @@ export const toPending = (r: ClaimRow): PendingClaim => ({
   nonce: r.nonce,
   message: r.message,
   expiresAt: Date.parse(r.nonce_expires_at),
-  used: r.status !== "nonce_issued",
+  used: nonceUsed(r.status),
 });
 
 export const claimStore = {
@@ -95,7 +96,8 @@ export const claimStore = {
       await serverDb()
         .from("claims")
         .update({ status: "checkout_sent", shopify_draft_order_id: draftOrderId, checkout_url: checkoutUrl, updated_at: new Date().toISOString() })
-        .eq("id", id),
+        .eq("id", id)
+        .in("status", comesFrom("checkout_sent")),
       "save checkout",
     );
   },

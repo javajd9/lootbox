@@ -1,8 +1,19 @@
 "use client";
 
+// The claim page, as three steps the winner moves through:
+//
+//   sign      pick the drop, connect the winning wallet, sign the one-time message
+//   checkout  signed: the $0 Shopify checkout is open, and this page waits for it to finish
+//   claimed   the address arrived and its fingerprint is on-chain
+//
+// The step is worked out in one place (`step`, below) from the claim token kept in this browser
+// and what /api/claims/status says about it. A claim that can no longer count (`expired`) goes
+// back to `sign` with the reason, rather than waiting on a checkout that will never finish.
 import { useEffect, useState } from "react";
 import bs58 from "bs58";
+import type { ClaimView } from "@/lib/claims/status";
 import type { DropStatus } from "@/lib/data/types";
+import { stageLabel } from "@/lib/engine/stages";
 import { mono } from "@/lib/fonts";
 import { shortWallet } from "@/lib/live/format";
 import { findWallet, walletError } from "@/lib/live/wallet";
@@ -18,21 +29,16 @@ export interface ClaimDrop {
   open: boolean;
 }
 
-const CLOSED: Partial<Record<DropStatus, string>> = {
-  claiming: "Claimed · ordering",
-  fulfilling: "Claimed · shipping",
-  delivered: "Delivered",
-  complete: "Complete",
+type Step = "sign" | "checkout" | "claimed";
+
+// How far a claimed prize has got, for the winner coming back to this page later.
+const AFTER_CLAIM: Partial<Record<DropStatus, string>> = {
+  fulfilling: "has been ordered and is on its way",
+  delivered: "has been delivered",
+  complete: "has been delivered",
 };
 
-interface ClaimStatus {
-  status: string;
-  dropId: string;
-  commitment?: string;
-  memoUrl?: string;
-  salt?: string;
-  normalized?: string;
-}
+const EXPIRED = "That claim can no longer be used: the claim window closed, or the prize was redrawn or already claimed. If this wallet is still the winner, sign again.";
 
 // The claim token stays in this browser only, so the winner can come back after the checkout.
 const TOKEN_KEY = "lootbox-claim";
@@ -47,12 +53,19 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
   const open = (drops ?? []).filter((d) => d.open);
   const [dropId, setDropId] = useState(open.length === 1 ? open[0].id : "");
   const [wallet, setWallet] = useState<string>();
-  const [status, setStatus] = useState<{ tone: "ok" | "bad" | "info"; text: string }>();
+  const [note, setNote] = useState<{ tone: "ok" | "bad"; text: string }>(); // the last thing that happened, in words
   const [busy, setBusy] = useState(false);
   const [missing, setMissing] = useState(false); // no wallet in this browser
   const [token, setToken] = useState<string | null>(null);
-  const [checkoutUrl, setCheckoutUrl] = useState<string>();
-  const [claim, setClaim] = useState<ClaimStatus>();
+  const [checkoutUrl, setCheckoutUrl] = useState<string>(); // from signing just now; after a reload it comes from `claim`
+  const [claim, setClaim] = useState<ClaimView>();
+
+  const forget = () => {
+    remember(null);
+    setToken(null);
+    setClaim(undefined);
+    setCheckoutUrl(undefined);
+  };
 
   useEffect(() => {
     // A link like /claim?drop=DROP-001 picks that drop, if it's waiting for a claim.
@@ -70,8 +83,14 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
     const poll = async () => {
       const res = await fetch(`/api/claims/status?token=${encodeURIComponent(token)}`, { cache: "no-store" }).catch(() => null);
       if (stop || !res) return;
-      if (res.status === 404) return remember(null), setToken(null);
-      if (res.ok) setClaim(await res.json());
+      if (res.status === 404) return forget();
+      if (!res.ok) return;
+      const view = (await res.json()) as ClaimView;
+      if (stop) return;
+      if (view.status === "expired") {
+        forget();
+        setNote({ tone: "bad", text: EXPIRED });
+      } else setClaim(view);
     };
     poll();
     const id = setInterval(poll, 5000);
@@ -79,7 +98,7 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
       stop = true;
       clearInterval(id);
     };
-  }, [token, claim?.status]);
+  }, [token, claim?.status]); // eslint-disable-line react-hooks/exhaustive-deps -- forget only sets state
 
   const connect = async () => {
     const provider = findWallet();
@@ -89,10 +108,10 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
     try {
       address = await provider.connect();
     } catch (err) {
-      return setStatus({ tone: "bad", text: walletError(err) });
+      return setNote({ tone: "bad", text: walletError(err) });
     }
     setWallet(address);
-    setStatus(undefined);
+    setNote(undefined);
     // The connected wallet won one of the open drops: pick it for them.
     const won = open.find((d) => d.winner === address);
     if (won) setDropId(won.id);
@@ -102,36 +121,42 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
     const provider = findWallet();
     if (!provider || !wallet) return;
     setBusy(true);
+    setNote(undefined); // the last try's message doesn't sit next to this one
     try {
       const start = await fetch("/api/claims/nonce", { method: "POST", body: JSON.stringify({ dropId, wallet }) });
       const startBody = await start.json();
-      if (!start.ok) return setStatus({ tone: "bad", text: startBody.error });
+      if (!start.ok) return setNote({ tone: "bad", text: startBody.error });
 
       let signature: Uint8Array;
       try {
         signature = await provider.signMessage(startBody.message);
       } catch (err) {
-        return setStatus({ tone: "bad", text: walletError(err) });
+        return setNote({ tone: "bad", text: walletError(err) });
       }
       const verify = await fetch("/api/claims/verify", {
         method: "POST",
         body: JSON.stringify({ nonce: startBody.nonce, signature: bs58.encode(signature) }),
       });
       const verifyBody = await verify.json();
-      if (!verify.ok) return setStatus({ tone: "bad", text: verifyBody.error });
+      if (!verify.ok) return setNote({ tone: "bad", text: verifyBody.error });
       remember(verifyBody.token);
       setToken(verifyBody.token);
+      setClaim(undefined); // a claim from before (an earlier drop's, say) is no longer the one on this page
       setCheckoutUrl(verifyBody.checkoutUrl);
-      setStatus({ tone: "ok", text: "Wallet verified. Now enter your shipping address at the $0 checkout." });
+      setNote({ tone: "ok", text: "Wallet verified. Now enter your shipping address at the $0 checkout." });
     } catch (e) {
-      setStatus({ tone: "bad", text: e instanceof Error ? e.message : "Something went wrong." });
+      setNote({ tone: "bad", text: e instanceof Error ? e.message : "Something went wrong." });
     } finally {
       setBusy(false);
     }
   };
 
-  const done = claim?.status === "checkout_complete";
+  const step: Step = claim?.status === "checkout_complete" ? "claimed" : token && (claim || checkoutUrl) ? "checkout" : "sign";
+  const checkout = checkoutUrl ?? claim?.checkoutUrl;
   const picked = open.find((d) => d.id === dropId);
+  const claimedDrop = drops?.find((d) => d.id === claim?.dropId);
+  // Once claimed, the form comes back only if another drop is waiting for this visitor to claim it.
+  const showForm = (step !== "claimed" || open.length > 0) && drops !== null && drops.length > 0;
 
   return (
     <div className={`${mono.variable} mx-auto max-w-lg space-y-6 px-4 py-20`}>
@@ -142,9 +167,11 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
         Then you&apos;ll enter your shipping address at a $0 checkout. Your details are never published.
       </p>
 
-      {done ? (
+      {step === "claimed" && claim ? (
         <div className="card space-y-3">
-          <p className="text-ok">Claimed! Your prize for {claim.dropId} is being ordered.</p>
+          <p className="text-ok">
+            Claimed! Your prize for {claim.dropId} {(claimedDrop && AFTER_CLAIM[claimedDrop.status]) ?? "is being ordered"}.
+          </p>
           <p className="text-sm text-cream/70">
             Your address is private. Only its fingerprint is public
             {claim.memoUrl && (
@@ -182,32 +209,34 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
             with the same wallet.
           </p>
         </div>
-      ) : token && claim ? (
+      ) : step === "checkout" ? (
         <div className="card space-y-4">
-          <p className="text-sm">Wallet verified for {claim.dropId}. Enter your shipping address at the $0 checkout; this page updates once it&apos;s done.</p>
-          {checkoutUrl && (
-            <a className="btn-loot block w-full text-center" href={checkoutUrl} target="_blank" rel="noreferrer">
+          <p className="text-sm">
+            Wallet verified for {claim?.dropId ?? dropId}. Enter your shipping address at the $0 checkout; this page updates once it&apos;s done.
+          </p>
+          {checkout && (
+            <a className="btn-loot block w-full text-center" href={checkout} target="_blank" rel="noreferrer">
               Open $0 checkout
             </a>
           )}
-          {!checkoutUrl && <p className="text-mute text-sm">Lost the checkout tab? Sign again below to get the link back.</p>}
+          {!checkout && <p className="text-mute text-sm">The checkout link isn&apos;t ready. Sign again below to get it.</p>}
           <p className="text-mute text-sm">Waiting for the checkout…</p>
         </div>
       ) : null}
 
-      {!done && drops === null && (
+      {step !== "claimed" && drops === null && (
         <div className="card">
           <p className="text-cream/70">The drop list can&apos;t be loaded right now. Try again in a minute.</p>
         </div>
       )}
 
-      {!done && drops !== null && drops.length === 0 && (
+      {step !== "claimed" && drops !== null && drops.length === 0 && (
         <div className="card">
           <p className="text-cream/70">No drop has been drawn yet. Once one is, it shows up here for its winner to claim.</p>
         </div>
       )}
 
-      {!done && drops !== null && drops.length > 0 && (
+      {showForm && drops && (
         <div className="card space-y-4">
           <div className="space-y-2">
             <span className="hud">Drop</span>
@@ -233,7 +262,7 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
                         </span>
                       </span>
                       <span className={`hud mt-1 whitespace-nowrap sm:mt-0 ${d.open ? "text-loot" : ""}`}>
-                        {d.open ? (isPicked ? "Selected" : "Claim open") : CLOSED[d.status]}
+                        {d.open ? (isPicked ? "Selected" : "Claim open") : stageLabel(d.status, true)}
                       </span>
                     </button>
                   </li>
@@ -260,11 +289,11 @@ export function ClaimForm({ drops }: { drops: ClaimDrop[] | null }) {
               </button>
             </>
           )}
-          {status && (
-            <p className={status.tone === "ok" ? "text-ok" : status.tone === "bad" ? "text-bad" : "text-mute"}>{status.text}</p>
-          )}
+          {note && <p className={note.tone === "ok" ? "text-ok" : "text-bad"}>{note.text}</p>}
         </div>
       )}
+      {/* with no form to sit under (say the drop is being redrawn right now), the message still shows */}
+      {note && !showForm && <p className={note.tone === "ok" ? "text-ok" : "text-bad"}>{note.text}</p>}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { liveStore } from "@/lib/engine/live";
 import { makeCommitment, normalizeAddress } from "@/lib/proofs/commitment";
 import { claimable } from "./claims";
 import { claimTokenOf, shippingAddressOf, type ShopifyOrder } from "./shopify";
+import { comesFrom } from "./status";
 import { claimStore } from "./store";
 
 const MEMO_RETRY_MS = 2 * 60_000; // a delivery that started posting and died frees the claim after this
@@ -32,7 +33,11 @@ export async function completeClaim(order: ShopifyOrder): Promise<Outcome> {
   const drop = (await liveStore().load()).drops.find((d) => d.id === claim.drop_id);
   const ok = claimable(drop, claim.wallet, now.getTime());
   if (!ok.ok || drop!.round !== claim.round) {
-    check(await db.from("claims").update({ status: "expired", shopify_order_id: orderId, updated_at: now.toISOString() }).eq("id", claim.id), "expire claim");
+    // Never a claim that another delivery of this order has finished in the meantime.
+    check(
+      await db.from("claims").update({ status: "expired", shopify_order_id: orderId, updated_at: now.toISOString() }).eq("id", claim.id).in("status", comesFrom("expired")),
+      "expire claim",
+    );
     console.warn(`claim ${claim.id} for ${claim.drop_id} arrived but can't count: ${ok.ok ? "the drop was redrawn" : ok.reason}`);
     return { retry: false, note: "claim no longer valid" };
   }
@@ -84,7 +89,8 @@ export async function completeClaim(order: ShopifyOrder): Promise<Outcome> {
         completed_at: now.toISOString(),
         updated_at: now.toISOString(),
       })
-      .eq("id", claim.id),
+      .eq("id", claim.id)
+      .in("status", comesFrom("checkout_complete")),
     "finish claim",
   );
   return { retry: false, note: `claimed; fingerprint ${memoTx}` };
