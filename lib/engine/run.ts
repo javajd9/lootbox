@@ -23,6 +23,7 @@ const FAILING_ALERT_MS = 10 * 60_000;
 export async function tick(store: EngineStore, effects: Effects, now = new Date(), rng = secureRandom): Promise<TickReport | undefined> {
   return store.withLock(async () => {
     let state = await store.load();
+    const lastPoolRead = state.poolReadAt;
     const steps: Step[] = [];
     const errors: TickReport["errors"] = [];
     const stuck = new Set<string>(); // a drop whose step failed waits for the next tick
@@ -88,7 +89,8 @@ export async function tick(store: EngineStore, effects: Effects, now = new Date(
       }
     }
     const before = state.failingSince ?? {};
-    const changed = sentAlerts !== state.sentAlerts || Object.keys(failing).length !== Object.keys(before).length || Object.keys(failing).some((k) => before[k] !== failing[k]);
+    // A fresh pool reading is saved even when nothing else happened, or the homepage keeps showing an old one.
+    const changed = state.poolReadAt !== lastPoolRead || sentAlerts !== state.sentAlerts || Object.keys(failing).length !== Object.keys(before).length || Object.keys(failing).some((k) => before[k] !== failing[k]);
     if (changed) {
       state = { ...state, failingSince: failing, sentAlerts };
       await store.save(state);

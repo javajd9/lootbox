@@ -42,12 +42,15 @@ export function liveEffects(): Effects {
   const ops = opsWallet();
   const treasury = Keypair.fromSecretKey(bs58.decode(env("TREASURY_WALLET_SECRET")));
   const prize = new PublicKey(env("PRIZE_WALLET"));
-  const mint = env("LOOT_MINT");
+  // Blank until $LOOT exists: the engine keeps running, and only a step that needs the coin stops.
+  const mint = process.env.LOOT_MINT?.trim();
+  const coin = () => env("LOOT_MINT").trim();
   // LOOTBOX's own wallets, pump.fun's bonding curve and the PumpSwap pool it graduates into never
   // hold tickets. They're published with each drop.
-  const excluded = [ops.publicKey, treasury.publicKey, prize, bondingCurveAddress(new PublicKey(mint)), poolAddress(new PublicKey(mint))]
-    .map((k) => k.toBase58())
-    .concat((process.env.EXCLUDED_WALLETS ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+  const excluded = () =>
+    [ops.publicKey, treasury.publicKey, prize, bondingCurveAddress(new PublicKey(coin())), poolAddress(new PublicKey(coin()))]
+      .map((k) => k.toBase58())
+      .concat((process.env.EXCLUDED_WALLETS ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 
   let price: Promise<number> | undefined;
   const solPrice = () => (price ??= solPriceUsd()); // one price for the whole tick
@@ -59,13 +62,14 @@ export function liveEffects(): Effects {
 
     // Zero until LOOT_MINT is a pump.fun coin.
     async readCreatorFees() {
+      if (!mint) return { lamports: 0, cents: 0 };
       const fees = await readCreatorFees(conn, new PublicKey(mint), treasury.publicKey);
       const lamports = Number(fees.total);
       return { lamports, cents: lamports ? Math.floor((lamports / 1e9) * (await solPrice()) * 100) : 0 };
     },
 
     async collect(d) {
-      const tx = await collectCreatorFees(conn, ops, treasury, new PublicKey(mint), d.id);
+      const tx = await collectCreatorFees(conn, ops, treasury, new PublicKey(coin()), d.id);
       if (tx) console.log(`collected creator fees for ${d.id}: ${tx}`);
     },
 
@@ -78,9 +82,9 @@ export function liveEffects(): Effects {
           title: c?.title ?? d.id,
           status: "funding",
           goal_usd_cents: d.goalCents,
-          token_mint: mint,
+          token_mint: coin(),
           treasury_wallet: treasury.publicKey.toBase58(),
-          excluded_wallets: excluded,
+          excluded_wallets: excluded(),
           opened_at: new Date().toISOString(),
         }),
         "save drop",
@@ -90,10 +94,10 @@ export function liveEffects(): Effects {
 
     async snapshot(d) {
       const slot = await conn.getSlot();
-      const accounts = await readHolders(mint);
+      const accounts = await readHolders(coin());
       // Any other program account (another pool, a vault) can't sign a claim either, so it's left out too.
       const programs = accounts.map((a) => a.owner).filter((owner) => !canSign(owner));
-      const snap = buildSnapshot(d.id, slot, new Date().toISOString(), accounts, [...excluded, ...programs]);
+      const snap = buildSnapshot(d.id, slot, new Date().toISOString(), accounts, [...excluded(), ...programs]);
       const hash = hashSnapshot(snap);
       const memo = await postMemo(conn, ops, fingerprintMemo(d.id, "snapshot", String(slot), hash));
       check(
