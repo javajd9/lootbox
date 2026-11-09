@@ -2,6 +2,7 @@
 // Signing costs nothing and can't move funds. Each nonce works once and expires.
 import nacl from "tweetnacl";
 import bs58 from "bs58";
+import { isOrdered } from "@/lib/engine/stages";
 import type { DropRecord } from "@/lib/engine/types";
 
 export const NONCE_TTL_MS = 10 * 60 * 1000;
@@ -64,7 +65,7 @@ export type ClaimableResult =
 
 export function claimable(drop: DropRecord | undefined, wallet: string, now = Date.now()): ClaimableResult {
   if (!drop) return { ok: false, reason: "unknown_drop" };
-  if (drop.claimedAt || ["fulfilling", "delivered", "complete"].includes(drop.stage)) return { ok: false, reason: "already_claimed" };
+  if (drop.claimedAt || isOrdered(drop.stage)) return { ok: false, reason: "already_claimed" };
   if (drop.stage !== "claiming" || !drop.winner) return { ok: false, reason: "not_claiming" };
   if (drop.hold) return { ok: false, reason: "on_hold" };
   if (drop.winner !== wallet) return { ok: false, reason: "not_winner" };

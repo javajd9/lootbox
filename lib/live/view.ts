@@ -1,5 +1,6 @@
 // The engine's public feed (GET /api/live), as the browser receives it. Types only, so the
 // homepage can use them without pulling in any server code.
+import type { Stage } from "@/lib/engine/stages";
 import type { PastDrop } from "./types";
 
 export type Cluster = "mainnet-beta";
@@ -24,7 +25,7 @@ export interface LiveView {
     number: number;
     title: string;
     goalCents: number;
-    stage: "upcoming" | "funding" | "snapshotting" | "drawing" | "claiming" | "fulfilling" | "delivered" | "complete";
+    stage: Stage;
     openedAt?: string;
     fundedAt?: string;
     drawAt?: string; // when the randomness is requested (the end of the pause)

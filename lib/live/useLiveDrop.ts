@@ -1,12 +1,14 @@
 "use client";
 
 // Live state of the current drop, as every viewer sees it, from the drop engine's public feed
-// (/api/live, checked every few seconds).
+// (/api/live, checked every few seconds). This hook only keeps time: what each poll, the end of
+// the reveal and the end of the winner's turn change is decided in ./fromView.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { applyView } from "./fromView";
+import { applyView, nextUp, revealWinner } from "./fromView";
 import type { PastDrop } from "./types";
 import type { LiveView } from "./view";
 
+// What the stage is showing (see ./fromView for how it moves from one to the next).
 export type Phase = "filling" | "funded" | "drawing" | "winner";
 
 export interface Trade {
@@ -62,23 +64,6 @@ const POLL_MS = 5_000;
 
 let tradeId = 0;
 
-// The moment the ticket is revealed, the drop joins the winner history (claim and fulfillment still to come).
-function recordWinner(s: LiveDrop): LiveDrop {
-  if (!s.draw) return s;
-  const entry: PastDrop = {
-    id: s.drop.id,
-    number: s.drop.number,
-    title: s.drop.title,
-    valueUsd: s.drop.goalUsd,
-    wallet: s.draw.wallet,
-    ticket: s.draw.ticket,
-    totalTickets: s.draw.totalTickets,
-    walletTickets: s.draw.walletTickets,
-    done: { funded: s.fundedAt, drawn: new Date().toISOString() },
-  };
-  return { ...s, phase: "winner", history: [entry, ...s.history.filter((h) => h.id !== entry.id)] };
-}
-
 export function useLiveDrop(initial: LiveDrop, upNext: StageDrop[]) {
   const [state, setState] = useState(initial);
   const [live, setLive] = useState(false);
@@ -114,16 +99,11 @@ export function useLiveDrop(initial: LiveDrop, upNext: StageDrop[]) {
   // After the winner has been on stage, the engine's current drop takes over.
   useEffect(() => {
     if (!live || state.phase !== "winner") return;
-    const t = setTimeout(() => {
-      setState((s) => {
-        const next = { ...s, phase: "filling" as const, draw: undefined, trades: [] };
-        return latest.current ? applyView(next, latest.current, () => ++tradeId) : next;
-      });
-    }, WINNER_HOLD_MS);
+    const t = setTimeout(() => setState((s) => nextUp(s, latest.current, () => ++tradeId)), WINNER_HOLD_MS);
     return () => clearTimeout(t);
   }, [live, state.phase]);
 
-  const finishDraw = useCallback(() => setState((s) => (s.phase === "drawing" ? recordWinner(s) : s)), []);
+  const finishDraw = useCallback(() => setState((s) => revealWinner(s)), []);
 
   return { state, live, nextDrop, finishDraw };
 }

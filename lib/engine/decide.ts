@@ -4,16 +4,14 @@
 import { RULES } from "@/lib/config/rules";
 import { CLAIM_DAYS } from "@/lib/live/types";
 import { nextSnapshotAt } from "./schedule";
-import type { DeliveryResult, DropRecord, Effect, EngineState, OrderResult, Stage, Step } from "./types";
+import { isDrawn } from "./stages";
+import type { DeliveryResult, DropRecord, Effect, EngineState, OrderResult, Step } from "./types";
 
 const DAY = 864e5;
-const RECEIPT_WAIT_DAYS = 14; // after delivery, how long to wait for the winner's signed receipt
+export const RECEIPT_WAIT_DAYS = 14; // after delivery, how long to wait for the winner's signed receipt
 const SLOW_RANDOMNESS_MS = 10 * 60_000;
 const SLOW_ORDER_MS = DAY; // Zinc usually places an order within hours
 const SLOW_DELIVERY_MS = 21 * DAY; // retailer orders usually arrive within a week or two
-
-// The winner is known.
-const DRAWN = new Set<Stage>(["claiming", "fulfilling", "delivered", "complete"]);
 
 // The pool now filling: the treasury, plus creator fees pump.fun is still holding for it. Each
 // prize leaves the treasury the moment its pool fills, so whatever a drop collected past its goal
@@ -37,7 +35,7 @@ export function decide(state: EngineState, now: Date): Step[] {
     switch (d.stage) {
       case "upcoming":
         // First in line: every drop before it has been drawn, and its opening time (if any) has come.
-        if (state.drops.slice(0, i).every((b) => DRAWN.has(b.stage)) && t >= (d.opensAt ? Date.parse(d.opensAt) : 0)) {
+        if (state.drops.slice(0, i).every((b) => isDrawn(b.stage)) && t >= (d.opensAt ? Date.parse(d.opensAt) : 0)) {
           add(d, { type: "open" });
         }
         break;
@@ -92,7 +90,7 @@ export function decide(state: EngineState, now: Date): Step[] {
 
   // Everything has been drawn and nothing is queued: the homepage has no pool to fill.
   const last = state.drops.at(-1);
-  if (last && state.drops.every((d) => DRAWN.has(d.stage))) {
+  if (last && state.drops.every((d) => isDrawn(d.stage))) {
     steps.push({ dropId: last.id, effect: alert(`no-next-drop:${last.id}`, `No drop is queued after ${last.id}. Add the next one so the homepage has a pool to fill.`) });
   }
 

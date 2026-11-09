@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HudSection } from "@/components/brand/Hud";
-import type { DropStatus } from "@/lib/data/types";
+import { stageLabel } from "@/lib/engine/stages";
 import { shortWallet, usd } from "@/lib/live/format";
 import { dropSummaries, type DropSummary } from "@/lib/proofs/drops";
 
@@ -8,17 +8,6 @@ import { dropSummaries, type DropSummary } from "@/lib/proofs/drops";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const metadata = { title: "Proof" };
-
-const STATUS: Record<DropStatus, string> = {
-  upcoming: "Not open yet",
-  funding: "Pool filling",
-  snapshotting: "Locking tickets",
-  drawing: "Drawing",
-  claiming: "Claim open",
-  fulfilling: "Ordered · shipping",
-  delivered: "Delivered",
-  complete: "Complete",
-};
 
 function DropRow({ d }: { d: DropSummary }) {
   const opened = d.status !== "upcoming";
@@ -30,7 +19,7 @@ function DropRow({ d }: { d: DropSummary }) {
         <span className="hud">{usd(d.goalUsd)}</span>
       </span>
       <span className="hidden font-mono text-sm text-cream/80 md:block">{d.winner ? shortWallet(d.winner) : "—"}</span>
-      <span className="hud whitespace-nowrap text-cream">{d.status === "claiming" && d.claimed ? "Claimed · ordering" : STATUS[d.status]}</span>
+      <span className="hud whitespace-nowrap text-cream">{stageLabel(d.status, d.claimed)}</span>
       <span className="hud hidden text-right md:block">{d.proofs ? `${d.proofs} proof${d.proofs === 1 ? "" : "s"}` : ""}</span>
       <span className="hud text-right text-loot">{opened ? "Check →" : ""}</span>
     </>

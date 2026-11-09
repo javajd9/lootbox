@@ -3,6 +3,7 @@
 import type { DropStatus } from "@/lib/data/types";
 import { check, serverDb } from "@/lib/db";
 import { dropQueue } from "@/lib/engine/drops";
+import { isDrawn } from "@/lib/engine/stages";
 
 export interface DropSummary {
   id: string;
@@ -15,8 +16,6 @@ export interface DropSummary {
   claimed: boolean; // the winner has finished the claim (its address fingerprint is on-chain)
   proofs: number; // proof packages published so far
 }
-
-const DRAWN = new Set<DropStatus>(["claiming", "fulfilling", "delivered", "complete"]);
 
 export async function dropSummaries(): Promise<DropSummary[]> {
   const queue = dropQueue();
@@ -45,7 +44,7 @@ export async function dropSummaries(): Promise<DropSummary[]> {
         goalUsd: c.goalCents / 100,
         status,
         openedAt: (row?.opened_at as string | null) ?? undefined,
-        winner: DRAWN.has(status) ? (latest?.winner_wallet as string | undefined) : undefined,
+        winner: isDrawn(status) ? (latest?.winner_wallet as string | undefined) : undefined,
         claimed: (claims ?? []).some((cl) => cl.drop_id === c.id),
         proofs: (proofs ?? []).filter((p) => p.drop_id === c.id).length,
       };

@@ -1,6 +1,21 @@
 // Turns each poll of the engine's feed into what the homepage shows. When the drop on stage gets
 // its winner, the draw plays first; the next drop takes over only after the winner has been shown.
+//
+// The stage is always in one of four phases, and every move between them is in this file:
+//
+//   filling ─ pool full ─▶ funded ─ winner in the feed ─▶ drawing ─ reveal played ─▶ winner
+//      ▲                                                                                │
+//      └──────────────── the winner has had the stage (WINNER_HOLD_MS) ─────────────────┘
+//
+//   applyView     each poll: filling ⇄ funded as the feed says, and from either one to drawing
+//                 the moment the feed names the winner of the drop on stage
+//   revealWinner  the reveal has played: drawing → winner
+//   nextUp        the winner has had the stage: winner → whatever the feed shows now
+//
+// While a draw is playing or its winner is on stage, polls change nothing.
+import { isPoolFull } from "@/lib/engine/stages";
 import { txUrl } from "./format";
+import type { PastDrop } from "./types";
 import type { LiveDrop, Trade } from "./useLiveDrop";
 import type { LiveView } from "./view";
 
@@ -23,6 +38,30 @@ function newTrades(s: LiveDrop, v: LiveView, nextTradeId: () => number): { trade
 // once its draw has played, so the ledger never gives the winner away early.
 const historyOf = (s: LiveDrop, v: LiveView) => (v.history ? v.history.filter((h) => h.id !== s.drop.id || s.revealedId === h.id) : s.history);
 
+// The moment the ticket is revealed, the drop joins the winner history (claim and fulfillment still to come).
+export function revealWinner(s: LiveDrop, now = new Date()): LiveDrop {
+  if (s.phase !== "drawing" || !s.draw) return s;
+  const entry: PastDrop = {
+    id: s.drop.id,
+    number: s.drop.number,
+    title: s.drop.title,
+    valueUsd: s.drop.goalUsd,
+    wallet: s.draw.wallet,
+    ticket: s.draw.ticket,
+    totalTickets: s.draw.totalTickets,
+    walletTickets: s.draw.walletTickets,
+    done: { funded: s.fundedAt, drawn: now.toISOString() },
+  };
+  return { ...s, phase: "winner", history: [entry, ...s.history.filter((h) => h.id !== entry.id)] };
+}
+
+// After the winner has been on stage, the engine's current drop takes over (`v`: the latest poll, if any).
+export function nextUp(s: LiveDrop, v: LiveView | null, nextTradeId: () => number): LiveDrop {
+  if (s.phase !== "winner") return s;
+  const next: LiveDrop = { ...s, phase: "filling", draw: undefined, trades: [] };
+  return v ? applyView(next, v, nextTradeId) : next;
+}
+
 export function applyView(s: LiveDrop, v: LiveView, nextTradeId: () => number): LiveDrop {
   // A reveal, or the winner on stage, finishes before anything else changes.
   if (s.phase === "drawing" || s.phase === "winner") return s;
@@ -41,7 +80,7 @@ export function applyView(s: LiveDrop, v: LiveView, nextTradeId: () => number): 
 
   const goalUsd = v.drop.goalCents / 100;
   const sameDrop = v.drop.id === s.drop.id;
-  const funded = v.drop.stage === "snapshotting" || v.drop.stage === "drawing";
+  const funded = isPoolFull(v.drop.stage);
   const fundedUsd = funded ? goalUsd : Math.min(goalUsd, round2(v.poolCents / 100));
   const filling = sameDrop && s.phase === "filling";
   const gained = filling ? round2(fundedUsd - s.fundedUsd) : 0;

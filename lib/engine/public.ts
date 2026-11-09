@@ -10,10 +10,8 @@ import type { LiveView } from "@/lib/live/view";
 import { poolCents } from "./decide";
 import { dropConfig } from "./drops";
 import { liveStore } from "./live";
+import { isDrawn, isLive } from "./stages";
 import type { DropRecord } from "./types";
-
-const LIVE_STAGES = new Set(["funding", "snapshotting", "drawing"]);
-const DRAWN_STAGES = new Set(["claiming", "fulfilling", "delivered", "complete"]);
 
 // How many tickets each round's winner held. A locked ticket list never changes, so each is read
 // once per server rather than on every poll.
@@ -35,7 +33,7 @@ async function walletTicketsOf(drops: DropRecord[]): Promise<Map<string, number 
 // Every drawn drop, newest first, with when each of its steps was proven. Funded and Paid are the
 // same moment: the pool filling, and the transaction that moved the prize's worth out of the treasury.
 async function pastDrops(drops: DropRecord[]): Promise<PastDrop[]> {
-  const drawn = drops.filter((d) => d.winner && DRAWN_STAGES.has(d.stage)).reverse();
+  const drawn = drops.filter((d) => d.winner && isDrawn(d.stage)).reverse();
   if (!drawn.length) return [];
   const [tickets, { data: shipped }] = await Promise.all([
     walletTicketsOf(drawn),
@@ -70,7 +68,7 @@ async function pastDrops(drops: DropRecord[]): Promise<PastDrop[]> {
 
 export async function liveView(): Promise<LiveView> {
   const state = await liveStore().load();
-  const current = state.drops.find((d) => LIVE_STAGES.has(d.stage)) ?? state.drops.find((d) => d.stage === "upcoming");
+  const current = state.drops.find((d) => isLive(d.stage)) ?? state.drops.find((d) => d.stage === "upcoming");
   const last = [...state.drops].reverse().find((d) => d.winner);
 
   let tickets: number | null = current?.totalTickets ?? null;

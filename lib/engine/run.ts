@@ -2,6 +2,7 @@
 // The scheduler calls it every minute; webhooks can call it early (e.g. the moment fees land).
 import { apply, decide, poolCents } from "./decide";
 import { secureRandom } from "./schedule";
+import { flowProblem } from "./stages";
 import type { DropRecord, Effect, Effects, EngineState, Step } from "./types";
 
 export interface EngineStore {
@@ -99,7 +100,12 @@ export async function tick(store: EngineStore, effects: Effects, now = new Date(
   });
 }
 
+// A step only ever runs in a stage it belongs to, and only ever moves a drop where ./stages says
+// it may. Either check failing means the rules and the stage table disagree, so the step stops
+// here: nothing is saved, the drop waits, and it's reported like any other failing step.
 async function perform(fx: Effects, d: DropRecord, e: Effect, now: Date, rng: () => number): Promise<DropRecord> {
+  const misplaced = flowProblem(e.type, d.stage);
+  if (misplaced) throw new Error(misplaced);
   let result: unknown;
   switch (e.type) {
     case "open":
@@ -138,7 +144,10 @@ async function perform(fx: Effects, d: DropRecord, e: Effect, now: Date, rng: ()
       break;
     // redraw and markDelivered are bookkeeping only
   }
-  return apply(d, e, result, now, rng);
+  const next = apply(d, e, result, now, rng);
+  const misplacedAfter = flowProblem(e.type, d.stage, next.stage);
+  if (misplacedAfter) throw new Error(misplacedAfter);
+  return next;
 }
 
 // For tests and local development. Production keeps the state in Supabase.

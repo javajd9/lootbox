@@ -1,8 +1,10 @@
 // The drop engine's view of a drop: where it is in its life, plus the private bits (like when the
 // next snapshot will be taken) that are never public until they've happened.
 
-// Same names as the database's drop_status.
-export type Stage = "upcoming" | "funding" | "snapshotting" | "drawing" | "claiming" | "fulfilling" | "delivered" | "complete";
+// The stages, and which step may move a drop from one to the next, are in ./stages.
+import type { Stage } from "./stages";
+
+export type { Stage };
 
 export interface DropRecord {
   id: string;

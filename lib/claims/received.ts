@@ -10,13 +10,13 @@ import { fingerprintMemo, postMemo } from "@/lib/chain/memo";
 import { connection, opsWallet } from "@/lib/chain/solana";
 import { check, serverDb } from "@/lib/db";
 import { liveStore } from "@/lib/engine/live";
+import { isDelivered } from "@/lib/engine/stages";
 import type { DropRecord } from "@/lib/engine/types";
 import { buildPackage, hashPackage, type ProofPackage } from "@/lib/proofs/package";
 import { receiptMessage, verifyReceipt } from "@/lib/proofs/receipt";
 import { isWalletAddress } from "./claims";
 
 const DAY = 864e5;
-const RECEIVABLE = new Set(["delivered", "complete"]);
 
 export type ReceiptAnswer = { ok: true; message: string } | { ok: false; status: number; error: string };
 
@@ -38,7 +38,7 @@ async function expected(dropId: string, wallet: string, receivedOn: string): Pro
   const drop = (await liveStore().load()).drops.find((d) => d.id === dropId);
   if (!drop) return fail(404, "No drop with that ID.");
   if (drop.winner !== wallet) return fail(403, "This wallet didn't win this drop. Connect the winning wallet.");
-  if (!RECEIVABLE.has(drop.stage)) return fail(409, "The carrier hasn't marked this prize delivered yet. Come back once it has arrived.");
+  if (!isDelivered(drop.stage)) return fail(409, "The carrier hasn't marked this prize delivered yet. Come back once it has arrived.");
 
   const db = serverDb();
   const [{ data: claim }, { data: order }] = await Promise.all([

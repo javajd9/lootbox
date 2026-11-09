@@ -1,6 +1,9 @@
 import type { ProofPackage } from "../proofs/package";
 
-export type DropStatus = "upcoming" | "funding" | "snapshotting" | "drawing" | "claiming" | "fulfilling" | "delivered" | "complete";
+import type { Stage } from "../engine/stages";
+
+// A drop's stage, under the name the public drops table gives it (its `status` column).
+export type DropStatus = Stage;
 
 export interface PrizeItem {
   name: string;

@@ -11,11 +11,10 @@ import { publishedAddresses } from "@/lib/config/addresses";
 import { check, serverDb } from "@/lib/db";
 import { combineWeights, type Snapshot } from "@/lib/draws/snapshot";
 import { TOKEN_DECIMALS, toTickets } from "@/lib/draws/tickets";
+import { LIVE_STAGES } from "@/lib/engine/stages";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-
-const LIVE = ["funding", "snapshotting", "drawing"];
 
 export interface TicketsView {
   drop: { id: string; number: number } | null; // null: no drop is filling right now
@@ -54,7 +53,7 @@ export async function GET(req: Request) {
   try {
     const db = serverDb();
     const { data: drop } = check(
-      await db.from("drops").select("id, number").in("status", LIVE).order("number", { ascending: false }).limit(1).maybeSingle(),
+      await db.from("drops").select("id, number").in("status", [...LIVE_STAGES]).order("number", { ascending: false }).limit(1).maybeSingle(),
       "load drop",
     );
     if (!drop) return view({ drop: null, snapshots: 0, tickets: 0, totalTickets: 0, locked: false, holding: await holdingNow(wallet) });

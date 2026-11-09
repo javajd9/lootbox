@@ -10,7 +10,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { RULES } from "@/lib/config/rules";
 import { coinPx, dropNo, feeLabel, shortWallet, usd } from "@/lib/live/format";
-import { WINNER_HOLD_MS, type DrawResult, type Trade } from "@/lib/live/useLiveDrop";
+import { WINNER_HOLD_MS, type DrawResult, type Phase, type Trade } from "@/lib/live/useLiveDrop";
 import type { PrizeItem } from "@/lib/data/types";
 import type { OfficialLinks } from "@/lib/config/links";
 import { CopyAddress } from "@/components/brand/CopyAddress";
@@ -124,7 +124,7 @@ function useOutOfView(el: React.RefObject<HTMLElement>) {
   return out;
 }
 
-function HeaderPool({ phase, number, title, pct, funded, goal }: { phase: string; number: number; title: string; pct: number; funded: number; goal: number }) {
+function HeaderPool({ phase, number, title, pct, funded, goal }: { phase: Phase; number: number; title: string; pct: number; funded: number; goal: number }) {
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   useEffect(() => setSlot(document.getElementById("header-live")), []);
   if (!slot) return null;
