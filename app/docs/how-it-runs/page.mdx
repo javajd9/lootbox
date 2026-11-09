@@ -60,6 +60,7 @@ The engine's rules are plain functions: given the state of every drop and the ti
 <Source
   files={[
     ["lib/engine/run.ts", "One tick: read the pool, do what's due, save after each step"],
+    ["lib/engine/stages.ts", "The stages, and which step may move a drop from one to the next"],
     ["lib/engine/decide.ts", "The rules: what's due for each drop, and what each step changes"],
     ["lib/engine/schedule.ts", "When the next random snapshot happens"],
     ["lib/engine/live.ts", "The real work behind each step: Solana, ORAO, Zinc, Reclaim"],

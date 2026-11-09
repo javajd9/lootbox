@@ -13,6 +13,7 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:check": "tsx scripts/db-check.ts",
     "schedule:tick": "tsx scripts/schedule-tick.ts",
+    "engine:status": "tsx scripts/engine-status.ts",
     "vercel:env": "tsx scripts/vercel-env.ts",
     "helius:webhook": "tsx scripts/helius-webhook.ts",
     "mainnet:fees-check": "tsx scripts/mainnet-fees-check.ts",

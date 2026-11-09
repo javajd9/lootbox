@@ -144,6 +144,7 @@ You don't have to take the docs' word for it. These are the files that decide wh
 | The drop queue, and what each prize is | [`lib/engine/drops.ts`](lib/engine/drops.ts), [`lib/config/prizes.ts`](lib/config/prizes.ts) |
 | How holdings become tickets | [`lib/draws/tickets.ts`](lib/draws/tickets.ts), [`lib/draws/snapshot.ts`](lib/draws/snapshot.ts) |
 | Why nobody knows when a snapshot will happen | [`lib/engine/schedule.ts`](lib/engine/schedule.ts) |
+| A drop's stages, and which step may move it from one to the next | [`lib/engine/stages.ts`](lib/engine/stages.ts) |
 | The engine's rules: when each step of a drop is due | [`lib/engine/decide.ts`](lib/engine/decide.ts), [`lib/engine/run.ts`](lib/engine/run.ts) |
 | How fees reach the treasury and the prize is funded | [`lib/treasury/`](lib/treasury) |
 | Why a draw's randomness can't be re-rolled | [`lib/chain/vrf.ts`](lib/chain/vrf.ts) |
@@ -159,6 +160,8 @@ You don't have to take the docs' word for it. These are the files that decide wh
 | The database tables | [`supabase/migrations/`](supabase/migrations) |
 
 The same list, with every file linked from the page that explains it, is at [getlootbox.fun/docs/source](https://www.getlootbox.fun/docs/source).
+
+Everything that moves through steps (a drop, a claim, an order, a delivery, each page's own states), what moves it and what stops a wrong move, is mapped in [`STATE-MACHINES.md`](STATE-MACHINES.md).
 
 ### Where things are
 
