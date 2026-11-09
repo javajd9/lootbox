@@ -39,20 +39,31 @@ const record = (c: DropConfig): DropRecord => ({
 
 export const initialState = (): EngineState => ({ drops: DROPS.map(record), treasuryCents: 0, sentAlerts: [] });
 
-// Adds newly listed drops to the saved state, after the ones it has. Never changes a known drop.
-// Only listed drops are run or shown: a saved drop that isn't listed here is left out, so it's
-// never ticked again.
+// Adds newly listed drops to the saved state, after the ones it has. Only listed drops are run or
+// shown: a saved drop that isn't listed here is left out, so it's never ticked again.
+//
+// A drop that hasn't opened yet follows this list: its record is saved the first time the engine
+// sees it, which can be before LAUNCH_AT or its final goal is set, and nothing about it has been
+// published. From the moment a drop opens, its record is never changed here.
 export function withQueuedDrops(store: EngineStore): EngineStore {
-  const listed = new Set(DROPS.map((d) => d.id));
+  const listed = new Map(DROPS.map((c) => [c.id, c]));
   return {
     ...store,
     async load() {
       const loaded = await store.load();
-      const drops = loaded.drops.filter((d) => listed.has(d.id));
-      const state = drops.length === loaded.drops.length ? loaded : { ...loaded, drops };
-      const known = new Set(state.drops.map((d) => d.id));
+      let changed = false;
+      const drops = loaded.drops
+        .filter((d) => listed.has(d.id))
+        .map((d) => {
+          const c = listed.get(d.id)!;
+          if (d.stage !== "upcoming" || (d.goalCents === c.goalCents && d.opensAt === c.opensAt)) return d;
+          changed = true;
+          return { ...d, goalCents: c.goalCents, opensAt: c.opensAt };
+        });
+      const known = new Set(drops.map((d) => d.id));
       const added = DROPS.filter((c) => !known.has(c.id)).map(record);
-      return added.length ? { ...state, drops: [...state.drops, ...added] } : state;
+      if (!changed && !added.length && drops.length === loaded.drops.length) return loaded;
+      return { ...loaded, drops: [...drops, ...added] };
     },
   };
 }
