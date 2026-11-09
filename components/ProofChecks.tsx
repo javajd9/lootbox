@@ -10,7 +10,12 @@ import { explorerTx, loadLiveFacts, proofMismatch, type LiveFacts, type LiveReco
 import type { Drop } from "@/lib/data/types";
 import { CheckMark, CrossMark } from "@/components/brand/Logo";
 
-type Result = "pass" | "fail" | "pending" | "checking";
+// One check: passed, failed, nothing published for it yet (pending), still being read from Solana
+// and Reclaim (checking), or not checked because they couldn't be reached (unchecked).
+type Result = "pass" | "fail" | "pending" | "checking" | "unchecked";
+
+// Reading a live drop's fingerprints from Solana and its proofs' signatures from Reclaim.
+type Load = { state: "loading" } | { state: "ready"; facts: LiveFacts } | { state: "failed"; error: string };
 
 const NONE: string[] = []; // no fingerprints read yet (one array, so the checks don't rerun every render)
 
@@ -27,7 +32,7 @@ function ResultIcon({ result }: { result: Result }) {
   if (result === "pass") return <CheckMark className="h-7 w-7" />;
   if (result === "fail") return <CrossMark className="h-7 w-7" />;
   return (
-    <span className="hud rounded-sm border border-line px-1.5 py-1 text-[9px]">{result === "checking" ? "…" : "Soon"}</span>
+    <span className="hud rounded-sm border border-line px-1.5 py-1 text-[9px]">{result === "checking" ? "…" : result === "unchecked" ? "?" : "Soon"}</span>
   );
 }
 
@@ -127,27 +132,31 @@ export function ProofChecks({ drop, packages, anchoredHashes, live }: { drop: Dr
   const [working, setWorking] = useState(packages);
   const [checks, setChecks] = useState<Check[]>([]);
   const [tampered, setTampered] = useState(false);
-  const [facts, setFacts] = useState<LiveFacts | null>(null);
-  const [unreachable, setUnreachable] = useState("");
+  const [load, setLoad] = useState<Load>({ state: "loading" });
   const [round, setRound] = useState(0); // "Verify everything" reads Solana and Reclaim again
 
   useEffect(() => {
     if (!live) return;
     let current = true;
-    setFacts(null);
-    setUnreachable("");
+    setLoad({ state: "loading" });
     loadLiveFacts(drop.id, packages, live)
-      .then((f) => current && setFacts(f))
-      .catch((err) => current && setUnreachable(err instanceof Error ? err.message : String(err)));
+      .then((f) => current && setLoad({ state: "ready", facts: f }))
+      .catch((err) => current && setLoad({ state: "failed", error: err instanceof Error ? err.message : String(err) }));
     return () => {
       current = false;
     };
   }, [drop.id, packages, live, round]);
 
+  const facts = load.state === "ready" ? load.facts : null;
+  const unreachable = live && load.state === "failed" ? load.error : "";
   const anchored = live ? (facts?.anchored ?? NONE) : anchoredHashes;
   const verify = useCallback(
-    () => setChecks(runChecks(drop, working, anchored, live ? { record: live, facts } : undefined)),
-    [drop, working, anchored, live, facts],
+    () =>
+      setChecks(
+        // With Solana out of reach, a check that was waiting on it isn't "still checking": it wasn't checked.
+        runChecks(drop, working, anchored, live ? { record: live, facts } : undefined).map((c) => (unreachable && c.result === "checking" ? { ...c, result: "unchecked" } : c)),
+      ),
+    [drop, working, anchored, live, facts, unreachable],
   );
   useEffect(verify, [verify]);
 
@@ -165,6 +174,7 @@ export function ProofChecks({ drop, packages, anchoredHashes, live }: { drop: Dr
   const breakdown = [
     count("fail") && `${count("fail")} failed`,
     count("checking") && `${count("checking")} still checking`,
+    count("unchecked") && `${count("unchecked")} couldn't be checked`,
     count("pending") && `${count("pending")} not yet available`,
   ].filter(Boolean);
 
